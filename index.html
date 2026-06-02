@@ -474,6 +474,7 @@ function setLang(lang) {
   judyEls.forEach(el => { el.textContent = lang === 'hu' ? 'Jutka' : 'Judy'; });
 }
 
+function startRecord() { openRecorder(); }
 
 const PAGE_URL = 'https://scott-judy-50th.netlify.app';
 const PAGE_TITLE = 'Scott & Judy — 50 Years';
@@ -621,11 +622,14 @@ function copyLink() {
     el('vrControls').querySelectorAll('.vrBtn:not(#vrStop):not(#vrSend):not(#vrRetake)').forEach(b=>b.remove());
     const ok=await startCam();if(ok){el('vrMsg').textContent='';startRecording();}
   }
-  el('vrStop').addEventListener('click',doStop);
-  el('vrSend').addEventListener('click',doSend);
-  el('vrRetake').addEventListener('click',doRetake);
-  el('vrClose').addEventListener('click',doClose);
-  window.startRecord=openRecorder;
+  function _init(){
+    el('vrStop').addEventListener('click',doStop);
+    el('vrSend').addEventListener('click',doSend);
+    el('vrRetake').addEventListener('click',doRetake);
+    el('vrClose').addEventListener('click',doClose);
+    window.startRecord=openRecorder;
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',_init);}else{_init();}
 })();
 </script>
 
