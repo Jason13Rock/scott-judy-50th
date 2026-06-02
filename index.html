@@ -529,16 +529,38 @@ function copyLink() {
     el('vrUpload').className=(p==='upload'||p==='done')?'on':'';
     el('vrLive').style.display=(p==='rec')?'block':'none';
     el('vrPreview').style.display=(p==='preview'||p==='done')?'block':'none';
+    if(p!=='rec' && el('vrFlip')) el('vrFlip').className='';
   }
   function stopStream(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}el('vrLive').srcObject=null;}
   function stopTicker(){if(tickerId){clearInterval(tickerId);tickerId=null;}}
-  async function startCam(){
-    const attempts=[
+  async function startCam(preferFront){
+    // First try to enumerate devices so we can pick the real rear camera by deviceId (works on iOS)
+    let rearId=null, frontId=null;
+    try{
+      const devs=await navigator.mediaDevices.enumerateDevices();
+      const cams=devs.filter(d=>d.kind==='videoinput');
+      // On iOS labels are empty until permission granted, so first attempt without deviceId
+      // After permission, labels like "Back Camera", "Front Camera" appear
+      const rearCam=cams.find(d=>/back|rear|environment/i.test(d.label));
+      const frontCam=cams.find(d=>/front|user|face/i.test(d.label));
+      if(rearCam) rearId=rearCam.deviceId;
+      if(frontCam) frontId=frontCam.deviceId;
+    }catch(e){}
+
+    const attempts=preferFront ? [
+      frontId ? {video:{deviceId:{exact:frontId}},audio:true} : null,
+      {video:{facingMode:{exact:'user'}},audio:true},
+      {video:{facingMode:'user'},audio:true},
+      {video:true,audio:true}
+    ].filter(Boolean) : [
+      rearId ? {video:{deviceId:{exact:rearId}},audio:true} : null,
       {video:{facingMode:{exact:'environment'},width:{ideal:1280},height:{ideal:720}},audio:true},
       {video:{facingMode:'environment'},audio:true},
       {video:{facingMode:{ideal:'environment'}},audio:true},
       {video:true,audio:true}
-    ];
+    ].filter(Boolean);
+
+    if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
     for(const c of attempts){try{stream=await navigator.mediaDevices.getUserMedia(c);break;}catch(e){stream=null;}}
     if(!stream){el('vrTimer').textContent='✕';el('vrMsg').textContent='Camera access denied. Please allow camera & microphone, then try again.';return false;}
     el('vrLive').srcObject=stream;await el('vrLive').play().catch(()=>{});return true;
@@ -558,6 +580,7 @@ function copyLink() {
     recorder.start(1000);phase('rec');el('vrStatus').innerHTML='<span class="vrDot"></span> Recording…';
     el('vrTimer').style.fontSize='';el('vrTimer').className='';el('vrTimer').textContent=fmt(60);
     el('vrBarFill').style.width='0%';el('vrMsg').textContent='';secsLeft=60;
+    el('vrFlip').className='visible';
     tickerId=setInterval(()=>{
       secsLeft--;el('vrBarFill').style.width=((60-secsLeft)/60*100)+'%';el('vrTimer').textContent=fmt(secsLeft);
       if(secsLeft<=10)el('vrTimer').className='warn';if(secsLeft<=0)doStop();
@@ -607,7 +630,7 @@ function copyLink() {
     el('vrStatus').innerHTML='';el('vrStatus').style.cssText='';el('vrBarFill').style.width='0%';
     el('vrMsg').style.cssText='';el('vrMsg').textContent='Starting camera…';
     el('vrPreview').style.display='none';phase('reset');el('vrLive').style.display='block';
-    const ok=await startCam();if(ok){el('vrMsg').textContent='';startRecording();}
+    const ok=await startCam(false);if(ok){el('vrMsg').textContent='';startRecording();}
   }
   function doClose(){
     stopTicker();if(recorder&&recorder.state!=='inactive')recorder.stop();stopStream();
@@ -625,13 +648,21 @@ function copyLink() {
     const pv=el('vrPreview');if(pv.src){URL.revokeObjectURL(pv.src);pv.src='';}
     phase('reset');el('vrLive').style.display='block';
     el('vrControls').querySelectorAll('.vrBtn:not(#vrStop):not(#vrSend):not(#vrRetake)').forEach(b=>b.remove());
-    const ok=await startCam();if(ok){el('vrMsg').textContent='';startRecording();}
+    const ok=await startCam(false);if(ok){el('vrMsg').textContent='';startRecording();}
   }
+  let _facingFront=false;
   function _init(){
     el('vrStop').addEventListener('click',doStop);
     el('vrSend').addEventListener('click',doSend);
     el('vrRetake').addEventListener('click',doRetake);
     el('vrClose').addEventListener('click',doClose);
+    el('vrFlip').addEventListener('click',async()=>{
+      _facingFront=!_facingFront;
+      const wasRecording=recorder&&recorder.state==='recording';
+      if(wasRecording){stopTicker();recorder.stop();}
+      await startCam(_facingFront);
+      if(wasRecording) startRecording();
+    });
     window.startRecord=openRecorder;
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',_init);}else{_init();}
@@ -666,6 +697,9 @@ function copyLink() {
 #vrClose{position:absolute;top:12px;right:14px;background:none;border:none;color:rgba(255,255,255,0.7);font-size:28px;cursor:pointer;z-index:1;padding:4px 8px;line-height:1}
 #vrActionRow{display:none;flex-direction:column;gap:12px;width:100%}
 #vrActionRow.on{display:flex}
+
+#vrFlip{width:100%;padding:14px 24px;font-family:'Jost',sans-serif;font-size:16px;font-weight:400;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;border-radius:2px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.2);display:none;}
+#vrFlip.visible{display:block;}
 </style>
 <div id="vrOverlay">
   <button id="vrClose">&#x2715;</button>
@@ -676,6 +710,7 @@ function copyLink() {
     <div id="vrBarWrap"><div id="vrBarFill"></div></div>
     <div id="vrStatus"></div>
     <button class="vrBtn" id="vrStop" style="display:none">&#x23F9; Stop Recording</button>
+    <button id="vrFlip">&#x1F504; Flip Camera</button>
     <div id="vrActionRow">
       <button class="vrBtn" id="vrSend">&#x2713; Send Video</button>
       <button class="vrBtn" id="vrRetake">&#x21A9; Retake</button>
