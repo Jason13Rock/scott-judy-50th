@@ -533,9 +533,14 @@ function copyLink() {
   function stopStream(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}el('vrLive').srcObject=null;}
   function stopTicker(){if(tickerId){clearInterval(tickerId);tickerId=null;}}
   async function startCam(){
-    try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:true});}
-    catch(e){try{stream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});}
-    catch(e2){el('vrTimer').textContent='✕';el('vrMsg').textContent='Camera access denied. Please allow camera & microphone, then try again.';return false;}}
+    const attempts=[
+      {video:{facingMode:{exact:'environment'},width:{ideal:1280},height:{ideal:720}},audio:true},
+      {video:{facingMode:'environment'},audio:true},
+      {video:{facingMode:{ideal:'environment'}},audio:true},
+      {video:true,audio:true}
+    ];
+    for(const c of attempts){try{stream=await navigator.mediaDevices.getUserMedia(c);break;}catch(e){stream=null;}}
+    if(!stream){el('vrTimer').textContent='✕';el('vrMsg').textContent='Camera access denied. Please allow camera & microphone, then try again.';return false;}
     el('vrLive').srcObject=stream;await el('vrLive').play().catch(()=>{});return true;
   }
   function startRecording(){
