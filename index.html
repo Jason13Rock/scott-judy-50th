@@ -536,29 +536,9 @@ function copyLink() {
   let facingMode='user';
   async function startCam(preferFront=true){
     try{
-      stream=await navigator.mediaDevices.getUserMedia({
-        video:{facingMode:{ideal:facingMode},width:{ideal:1280},height:{ideal:720}},
-        audio:true
-      });
-      el('vrLive').srcObject=stream;
-
-    const attempts=preferFront ? [
-      frontId ? {video:{deviceId:{exact:frontId}},audio:true} : null,
-      {video:{facingMode:{exact:'user'}},audio:true},
-      {video:{facingMode:'user'},audio:true},
-      {video:true,audio:true}
-    ].filter(Boolean) : [
-      rearId ? {video:{deviceId:{exact:rearId}},audio:true} : null,
-      {video:{facingMode:{exact:'environment'},width:{ideal:1280},height:{ideal:720}},audio:true},
-      {video:{facingMode:'user'},audio:true},
-      {video:{facingMode:{ideal:'environment'}},audio:true},
-      {video:true,audio:true}
-    ].filter(Boolean);
-
-    if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
-    for(const c of attempts){try{stream=await navigator.mediaDevices.getUserMedia(c);break;}catch(e){stream=null;}}
-    if(!stream){el('vrTimer').textContent='✕';el('vrMsg').textContent='Camera access denied. Please allow camera & microphone, then try again.';return false;}
-    el('vrLive').srcObject=stream;await el('vrLive').play().catch(()=>{});return true;
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facingMode},width:{ideal:1280},height:{ideal:720}},audio:true});
+      el('vrLive').srcObject=stream;await el('vrLive').play().catch(()=>{});
+    }catch(e){el('vrMsg').textContent='Camera error.';}
   }
   function startRecording(){
     chunks=[];
