@@ -533,7 +533,7 @@ function copyLink() {
   }
   function stopStream(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}el('vrLive').srcObject=null;}
   function stopTicker(){if(tickerId){clearInterval(tickerId);tickerId=null;}}
-  async function startCam(preferFront){
+  async function startCam(preferFront=true){
     // First try to enumerate devices so we can pick the real rear camera by deviceId (works on iOS)
     let rearId=null, frontId=null;
     try{
