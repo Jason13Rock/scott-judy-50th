@@ -555,7 +555,7 @@ function copyLink() {
     ].filter(Boolean) : [
       rearId ? {video:{deviceId:{exact:rearId}},audio:true} : null,
       {video:{facingMode:{exact:'environment'},width:{ideal:1280},height:{ideal:720}},audio:true},
-      {video:{facingMode:'environment'},audio:true},
+      {video:{facingMode:'user'},audio:true},
       {video:{facingMode:{ideal:'environment'}},audio:true},
       {video:true,audio:true}
     ].filter(Boolean);
