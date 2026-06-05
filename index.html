@@ -537,7 +537,7 @@ function copyLink() {
   async function startCam(preferFront=true){
     try{
       stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facingMode},width:{ideal:1280},height:{ideal:720}},audio:true});
-      el('vrLive').srcObject=stream;await el('vrLive').play().catch(()=>{});phase('rec');
+      el('vrLive').srcObject=stream;await el('vrLive').play().catch(()=>{});phase('rec');return true;
     }catch(e){el('vrMsg').textContent='Camera error.';}
   }
   function startRecording(){
@@ -605,7 +605,7 @@ function copyLink() {
     el('vrStatus').innerHTML='';el('vrStatus').style.cssText='';el('vrBarFill').style.width='0%';
     el('vrMsg').style.cssText='';el('vrMsg').textContent='Starting camera…';
     el('vrPreview').style.display='none';phase('reset');el('vrLive').style.display='block';
-    const ok=await startCam(false);if(ok){el('vrMsg').textContent='';startRecording();}
+    const ok=await startCam(true);if(ok){el('vrMsg').textContent='';startRecording();}
   }
   function doClose(){
     stopTicker();if(recorder&&recorder.state!=='inactive')recorder.stop();stopStream();
@@ -623,7 +623,7 @@ function copyLink() {
     const pv=el('vrPreview');if(pv.src){URL.revokeObjectURL(pv.src);pv.src='';}
     phase('reset');el('vrLive').style.display='block';
     el('vrControls').querySelectorAll('.vrBtn:not(#vrStop):not(#vrSend):not(#vrRetake)').forEach(b=>b.remove());
-    const ok=await startCam(false);if(ok){el('vrMsg').textContent='';startRecording();}
+    const ok=await startCam(true);if(ok){el('vrMsg').textContent='';startRecording();}
   }
   let _facingFront=false;
   function _init(){
