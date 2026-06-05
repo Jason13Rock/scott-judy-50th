@@ -533,19 +533,14 @@ function copyLink() {
   }
   function stopStream(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}el('vrLive').srcObject=null;}
   function stopTicker(){if(tickerId){clearInterval(tickerId);tickerId=null;}}
+  let facingMode='user';
   async function startCam(preferFront=true){
-    // First try to enumerate devices so we can pick the real rear camera by deviceId (works on iOS)
-    let rearId=null, frontId=null;
     try{
-      const devs=await navigator.mediaDevices.enumerateDevices();
-      const cams=devs.filter(d=>d.kind==='videoinput');
-      // On iOS labels are empty until permission granted, so first attempt without deviceId
-      // After permission, labels like "Back Camera", "Front Camera" appear
-      const rearCam=cams.find(d=>/back|rear|environment/i.test(d.label));
-      const frontCam=cams.find(d=>/front|user|face/i.test(d.label));
-      if(rearCam) rearId=rearCam.deviceId;
-      if(frontCam) frontId=frontCam.deviceId;
-    }catch(e){}
+      stream=await navigator.mediaDevices.getUserMedia({
+        video:{facingMode:{ideal:facingMode},width:{ideal:1280},height:{ideal:720}},
+        audio:true
+      });
+      el('vrLive').srcObject=stream;
 
     const attempts=preferFront ? [
       frontId ? {video:{deviceId:{exact:frontId}},audio:true} : null,
