@@ -537,7 +537,7 @@ function copyLink() {
   async function startCam(preferFront=true){
     try{
       stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facingMode},width:{ideal:1280},height:{ideal:720}},audio:true});
-      el('vrLive').srcObject=stream;await el('vrLive').play().catch(()=>{});
+      el('vrLive').srcObject=stream;await el('vrLive').play().catch(()=>{});phase('rec');
     }catch(e){el('vrMsg').textContent='Camera error.';}
   }
   function startRecording(){
