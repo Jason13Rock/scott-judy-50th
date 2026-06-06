@@ -519,7 +519,7 @@ function copyLink() {
 }
 
 (function(){
-  const DBX='https://www.dropbox.com/request/ig7byuvkqytngbmaw1';
+  const DBX='https://script.google.com/macros/s/AKfycby6LUKG5Tk5yFEjDAI2b3K-OurV5E5lcuY5EcAP592kI4ryEkrr6fLl2gE2Y8ZXTAGzDg/exec';
   function el(id){return document.getElementById(id);}
   let stream=null,recorder=null,chunks=[],tickerId=null,secsLeft=60,blob=null;
   function fmt(s){return Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60);}
@@ -628,7 +628,38 @@ function copyLink() {
   let _facingFront=false;
   function _init(){
     el('vrStop').addEventListener('click',doStop);
-    el('vrSend').addEventListener('click',doSend);
+    el('vrSend').addEventListener('click',function(){
+      var b=blob||window._vrBlob;
+      if(!b){el('vrMsg').textContent='No video found. Please retake.';return;}
+      var gn=window._gN||'Guest';
+      var ge=window._gE||'';
+      phase('upload');
+      el('vrUpLabel').textContent='Uploading…';
+      el('vrUpFill').style.width='30%';
+      var reader=new FileReader();
+      reader.onload=function(ev){
+        var fd=new FormData();
+        fd.append('fileData',ev.target.result.split(',')[1]);
+        fd.append('fileName','video_'+Date.now()+'.webm');
+        fd.append('mimeType',b.type||'video/webm');
+        fd.append('guestName',gn);
+        fd.append('guestEmail',ge);
+        el('vrUpFill').style.width='60%';
+        fetch('https://script.google.com/macros/s/AKfycby6LUKG5Tk5yFEjDAI2b3K-OurV5E5lcuY5EcAP592kI4ryEkrr6fLl2gE2Y8ZXTAGzDg/exec',{method:'POST',body:fd})
+        .then(function(r){return r.json();})
+        .then(function(d){
+          el('vrUpFill').style.width='100%';
+          if(d.success){
+            el('vrUpLabel').textContent='Sent! Thank you, '+gn+'!';
+          } else {
+            el('vrUpLabel').textContent='Upload failed. '+( d.error||'Please try again.');
+          }
+        }).catch(function(){
+          el('vrUpLabel').textContent='Upload failed. Check your connection.';
+        });
+      };
+      reader.readAsDataURL(b);
+    });
     el('vrRetake').addEventListener('click',doRetake);
     el('vrClose').addEventListener('click',doClose);
     el('vrFlip').addEventListener('click',async()=>{
@@ -734,24 +765,13 @@ document.addEventListener("DOMContentLoaded",function(){
     sendBtn.addEventListener("click",function(e){
       e.preventDefault();e.stopImmediatePropagation();
       var blob=window._vrBlob||null;
-      if(!blob){document.getElementById("vrMsg").textContent="No video found. Please retake.";return;}
-      if(!_gN){_gN=document.getElementById("guestName")?document.getElementById("guestName").value.trim():"Guest";}
-      uploadAS(blob);
+      if(blob){uploadAS(blob);}else{alert("No video found. Please try recording again.");}
     },true);
   }
 });
 function uploadAS(file){
   var sd=document.getElementById("uploadStatus"),sm=document.getElementById("uploadStatusMsg"),ss=document.getElementById("uploadStatusSub");
-  if(!sd){
-    sd=document.createElement("div");
-    sd.id="uploadStatus";
-    sd.style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;";
-    sd.innerHTML='<div style="background:#fff;border-radius:16px;padding:2rem;max-width:320px;width:90%;text-align:center;"><p id="uploadStatusMsg" style="font-size:1rem;font-weight:600;color:#111;margin:0;">Uploading...</p><p id="uploadStatusSub" style="font-size:0.85rem;color:#555;margin:0.4rem 0 0;">Keep this page open.</p></div>';
-    document.body.appendChild(sd);
-    sm=document.getElementById("uploadStatusMsg");
-    ss=document.getElementById("uploadStatusSub");
-  }
-  sd.style.display="flex";
+  if(sd)sd.style.display="flex";
   var r=new FileReader();
   r.onload=function(e){
     var fd=new FormData();
