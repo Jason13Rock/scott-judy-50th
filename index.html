@@ -571,24 +571,27 @@ function copyLink() {
   
   
   
+  
   async function doSend(){
     const b=window._vrBlob;if(!b)return;
     const gn=window._gN||'Guest';const ge=window._gE||'';
     const fname='message-'+Date.now()+'.webm';
-    // Create overlay on the fly if not present
+    // Immediate visual feedback on the button itself
+    const sendBtn=document.getElementById('vrSend');
+    if(sendBtn){sendBtn.textContent='Sending…';sendBtn.style.background='#888';sendBtn.style.pointerEvents='none';}
+    // Create overlay
     var ov=document.getElementById('mjUploadOv');
     if(!ov){
       ov=document.createElement('div');
       ov.id='mjUploadOv';
-      ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;';
-      ov.innerHTML='<div style="background:#1a1008;border-radius:12px;padding:2rem;max-width:320px;width:90%;text-align:center;"><div id="mjUploadLbl" style="font-size:1rem;font-weight:600;color:#fff;margin-bottom:1rem;">Sending…</div><div style="width:100%;height:8px;background:rgba(255,255,255,0.2);border-radius:4px;overflow:hidden;"><div id="mjUploadBar" style="height:100%;background:#4a7c3f;border-radius:4px;width:0%;transition:width 0.5s;"></div></div></div>';
+      ov.innerHTML='<div style="background:#1a1008;border-radius:12px;padding:2rem;max-width:320px;width:90%;text-align:center;"><div id="mjUploadLbl" style="font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:1rem;">Uploading…</div><div style="width:100%;height:10px;background:rgba(255,255,255,0.2);border-radius:5px;overflow:hidden;"><div id="mjUploadBar" style="height:100%;background:#4a7c3f;border-radius:5px;width:10%;transition:width 0.5s;"></div></div></div>';
       document.body.appendChild(ov);
     }
+    ov.style.cssText='position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;';
     var ol=document.getElementById('mjUploadLbl');
     var ob=document.getElementById('mjUploadBar');
-    ov.style.display='flex';ol.textContent='Sending…';ob.style.width='10%';
     try{
-      ob.style.width='30%';ol.textContent='Uploading…';
+      if(ob)ob.style.width='30%';
       var fd=new FormData();
       fd.append('file',b,fname);
       fd.append('upload_preset','scott_judy_uploads');
@@ -596,18 +599,19 @@ function copyLink() {
       var resp=await fetch('https://api.cloudinary.com/v1_1/dgcbq2qlk/video/upload',{method:'POST',body:fd});
       var json=await resp.json();
       if(json.error)throw new Error(json.error.message||'Upload failed');
-      ob.style.width='100%';ol.textContent='✓ Sent! Thank you, '+gn+'!';
+      if(ob)ob.style.width='100%';
+      if(ol)ol.textContent='✓ Sent! Thank you, '+gn+'!';
       setTimeout(function(){
-        ov.style.display='none';
+        if(ov)ov.style.display='none';
         var vr=document.getElementById('vrOverlay');
         if(vr)vr.classList.remove('active');
         window._vrBlob=null;
       },3000);
     }catch(err){
       window._sendError=err.message;
-      ol.textContent='Upload failed: '+err.message;
-      ob.style.width='0%';
-      setTimeout(function(){ov.style.display='none';},5000);
+      if(ol)ol.textContent='Upload failed: '+err.message;
+      if(ob)ob.style.width='0%';
+      setTimeout(function(){if(ov)ov.style.display='none';},5000);
     }
   }
   async function doRetake(){
