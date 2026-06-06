@@ -562,39 +562,30 @@ function copyLink() {
     },1000);
   }
   function doStop(){stopTicker();if(recorder&&recorder.state!=='inactive')recorder.stop();}
-  async function doSend(){
-    const b=window._vrBlob;if(!b)return;
+    async function doSend(){
+    const b=window._vrBlob;if(!b){el('vrMsg').textContent='No video found. Please retake.';return;}
     const ext=b.type.includes('mp4')?'mp4':'webm';const fname='message-'+Date.now()+'.'+ext;
     phase('upload');el('vrTimer').style.fontSize='';el('vrTimer').textContent='';
     el('vrStatus').innerHTML='';el('vrUpFill').style.width='5%';
     el('vrUpLabel').textContent='Sending your video…';el('vrMsg').textContent='';
     try{
-      const fd=new FormData();fd.append('file',b,fname);
-      await new Promise((resolve,reject)=>{
-        const xhr=new XMLHttpRequest();
-        xhr.upload.onprogress=e=>{if(e.lengthComputable){const p=Math.round(e.loaded/e.total*100);el('vrUpFill').style.width=p+'%';el('vrUpLabel').textContent='Uploading… '+p+'%';}};
-        xhr.onload=()=>{if(xhr.status<500)resolve();else reject(new Error(xhr.status));};
-        xhr.onerror=()=>reject(new Error('network'));xhr.ontimeout=()=>reject(new Error('timeout'));
-        xhr.timeout=60000;xhr.open('POST',DBX+'/upload');xhr.send(fd);
-      });
-      el('vrUpFill').style.width='100%';el('vrUpLabel').textContent='✓ Sent! Thank you!';
+      const gn=window._gN||'Guest';const ge=window._gE||'';
+      const b64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(b);});
+      el('vrUpFill').style.width='40%';el('vrUpLabel').textContent='Uploading…';
+      const fd=new FormData();
+      fd.append('fileData',b64);fd.append('fileName',fname);
+      fd.append('mimeType',b.type||'video/webm');
+      fd.append('guestName',gn);fd.append('guestEmail',ge);
+      const resp=await fetch('https://script.google.com/macros/s/AKfycby6LUKG5Tk5yFEjDAI2b3K-OurV5E5lcuY5EcAP592kI4ryEkrr6fLl2gE2Y8ZXTAGzDg/exec',{method:'POST',body:fd});
+      const json=await resp.json();
+      if(!json.success)throw new Error(json.error||'Upload failed');
+      el('vrUpFill').style.width='100%';el('vrUpLabel').textContent='✓ Sent! Thank you, '+gn+'!';
       el('vrTimer').textContent='✓';el('vrMsg').textContent='Your video has been sent. Scott & Judy will love it!';
-      const ms=document.getElementById('uploadStatus');
-      if(ms){ms.textContent='✓ Video sent! Thank you.';ms.style.cssText='color:#4a7c3f;font-size:16px;font-weight:500;padding:12px 0';}
       setTimeout(()=>doClose(),3000);
     }catch(err){
-      phase('done');el('vrPreview').style.display='none';el('vrUpload').className='';
-      const u=URL.createObjectURL(b);const a=document.createElement('a');
-      a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);
-      setTimeout(()=>window.open(DBX,'_blank'),800);
-      el('vrTimer').textContent='📁';el('vrTimer').style.fontSize='44px';
-      el('vrStatus').innerHTML='<span style="font-size:18px;font-weight:600;text-transform:none;letter-spacing:0;color:#fff">Almost done!</span>';
-      el('vrMsg').style.cssText='font-size:16px;color:rgba(255,255,255,0.9);line-height:1.7;max-width:320px;text-align:center;';
-      el('vrMsg').textContent='Your video was saved to your device. The Dropbox page is opening — just tap "Choose file" and select your video.';
-      const db=document.createElement('button');db.className='vrBtn';
-      db.style.cssText='background:#4a7c3f;color:#fff;margin-top:4px;';db.textContent='✓ Done — I uploaded it';
-      db.onclick=()=>{const ms=document.getElementById('uploadStatus');if(ms){ms.textContent='✓ Thank you for your message!';ms.style.cssText='color:#4a7c3f;font-size:16px;font-weight:500;padding:12px 0';}doClose();};
-      el('vrControls').appendChild(db);
+      el('vrUpFill').style.width='0%';el('vrUpLabel').textContent='';
+      phase('preview');
+      el('vrMsg').textContent='Upload failed: '+err.message+'. Please try again.';
     }
   }
   async function doRetake(){
