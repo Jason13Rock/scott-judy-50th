@@ -569,6 +569,7 @@ function copyLink() {
   
   
   
+  
   async function doSend(){
     const b=window._vrBlob;if(!b)return;
     const gn=window._gN||'Guest';const ge=window._gE||'';
@@ -579,10 +580,14 @@ function copyLink() {
     if(ov){ov.style.display='flex';ol.textContent='Sending…';ob.style.width='10%';}
     try{
       if(ov){ob.style.width='30%';ol.textContent='Uploading…';}
-      var url='https://script.google.com/macros/s/AKfycby6LUKG5Tk5yFEjDAI2b3K-OurV5E5lcuY5EcAP592kI4ryEkrr6fLl2gE2Y8ZXTAGzDg/exec?guestName='+encodeURIComponent(gn)+'&guestEmail='+encodeURIComponent(ge)+'&fileName='+encodeURIComponent(fname)+'&mimeType='+encodeURIComponent(b.type||'video/webm');
-      const resp=await fetch(url,{method:'POST',body:b,headers:{'Content-Type':b.type||'video/webm'}});
-      const json=await resp.json();
-      if(!json.success)throw new Error(json.error||'Server error');
+      var fd=new FormData();
+      fd.append('file',b,fname);
+      fd.append('upload_preset','scott_judy_uploads');
+      fd.append('context','guestName='+gn+'|guestEmail='+ge);
+      fd.append('public_id',gn.replace(/[^a-zA-Z0-9]/g,'_')+'_'+Date.now());
+      var resp=await fetch('https://api.cloudinary.com/v1_1/dgcbq2qlk/video/upload',{method:'POST',body:fd});
+      var json=await resp.json();
+      if(json.error)throw new Error(json.error.message||'Upload failed');
       if(ov){ob.style.width='100%';ol.textContent='✓ Sent! Thank you, '+gn+'!';}
       setTimeout(function(){
         if(ov)ov.style.display='none';
