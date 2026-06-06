@@ -734,13 +734,24 @@ document.addEventListener("DOMContentLoaded",function(){
     sendBtn.addEventListener("click",function(e){
       e.preventDefault();e.stopImmediatePropagation();
       var blob=window._vrBlob||null;
-      if(blob){uploadAS(blob);}else{alert("No video found. Please try recording again.");}
+      if(!blob){document.getElementById("vrMsg").textContent="No video found. Please retake.";return;}
+      if(!_gN){_gN=document.getElementById("guestName")?document.getElementById("guestName").value.trim():"Guest";}
+      uploadAS(blob);
     },true);
   }
 });
 function uploadAS(file){
   var sd=document.getElementById("uploadStatus"),sm=document.getElementById("uploadStatusMsg"),ss=document.getElementById("uploadStatusSub");
-  if(sd)sd.style.display="flex";
+  if(!sd){
+    sd=document.createElement("div");
+    sd.id="uploadStatus";
+    sd.style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;";
+    sd.innerHTML='<div style="background:#fff;border-radius:16px;padding:2rem;max-width:320px;width:90%;text-align:center;"><p id="uploadStatusMsg" style="font-size:1rem;font-weight:600;color:#111;margin:0;">Uploading...</p><p id="uploadStatusSub" style="font-size:0.85rem;color:#555;margin:0.4rem 0 0;">Keep this page open.</p></div>';
+    document.body.appendChild(sd);
+    sm=document.getElementById("uploadStatusMsg");
+    ss=document.getElementById("uploadStatusSub");
+  }
+  sd.style.display="flex";
   var r=new FileReader();
   r.onload=function(e){
     var fd=new FormData();
