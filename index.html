@@ -728,6 +728,16 @@ document.addEventListener("DOMContentLoaded",function(){
   if(ni)ni.addEventListener("input",guestNameInput);
   var fi=document.querySelector("input[type=file]");
   if(fi)fi.addEventListener("change",function(){if(fi.files[0])uploadAS(fi.files[0]);});
+  // Intercept vrSend button to use Apps Script instead of Dropbox
+  var sendBtn=document.getElementById("vrSend");
+  if(sendBtn){
+    sendBtn.addEventListener("click",function(e){
+      e.preventDefault();e.stopImmediatePropagation();
+      var vEl=document.querySelector("video#vrPlayback,video[id*=play],video[id*=Play]");
+      var blob=window._recordedBlob||null;
+      if(blob){uploadAS(blob);}else{alert("No video found to upload.");}
+    },true);
+  }
 });
 function uploadAS(file){
   var sd=document.getElementById("uploadStatus"),sm=document.getElementById("uploadStatusMsg"),ss=document.getElementById("uploadStatusSub");
