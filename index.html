@@ -780,5 +780,61 @@ function uploadAS(file){
 </script>
 
 <div id="mjUploadOv" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.88);align-items:center;justify-content:center;"><div style="background:#1a1008;border-radius:12px;padding:2rem;max-width:320px;width:90%;text-align:center;"><div id="mjUploadLbl" style="font-size:1rem;font-weight:600;color:#fff;margin-bottom:1rem;">Uploading…</div><div style="width:100%;height:8px;background:rgba(255,255,255,0.2);border-radius:4px;overflow:hidden;"><div id="mjUploadBar" style="height:100%;background:#4a7c3f;border-radius:4px;width:0%;transition:width 0.3s;"></div></div></div></div>
+
+<script id="vrSendFix">
+// Fix: clone vrSend after page loads to strip all accumulated duplicate listeners
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    var old = document.getElementById('vrSend');
+    if (!old || old.dataset.fixed) return;
+    var fresh = old.cloneNode(true);
+    fresh.dataset.fixed = '1';
+    old.parentNode.replaceChild(fresh, old);
+    fresh.addEventListener('click', async function() {
+      var b = window._vrBlob;
+      if (!b) return;
+      var gn = window._gN || 'Guest';
+      var ge = window._gE || '';
+      var fname = 'message-' + Date.now() + '.webm';
+      fresh.textContent = 'Sending…';
+      fresh.style.background = '#666';
+      fresh.style.pointerEvents = 'none';
+      var ov = document.getElementById('mjUploadOv');
+      if (!ov) {
+        ov = document.createElement('div');
+        ov.id = 'mjUploadOv';
+        ov.innerHTML = '<div style="background:#1a1008;border-radius:12px;padding:2rem;max-width:320px;width:90%;text-align:center;"><div id="mjUploadLbl" style="font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:1rem;">Uploading…<\/div><div style="width:100%;height:10px;background:rgba(255,255,255,0.2);border-radius:5px;overflow:hidden;"><div id="mjUploadBar" style="height:100%;background:#4a7c3f;border-radius:5px;width:10%;transition:width 0.5s;"><\/div><\/div><\/div>';
+        document.body.appendChild(ov);
+      }
+      ov.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;';
+      var ol = document.getElementById('mjUploadLbl');
+      var ob = document.getElementById('mjUploadBar');
+      try {
+        if (ob) ob.style.width = '30%';
+        var fd = new FormData();
+        fd.append('file', b, fname);
+        fd.append('upload_preset', 'scott_judy_uploads');
+        fd.append('context', 'guestName=' + encodeURIComponent(gn) + '|guestEmail=' + encodeURIComponent(ge));
+        var resp = await fetch('https://api.cloudinary.com/v1_1/dgcbq2qlk/video/upload', { method: 'POST', body: fd });
+        var json = await resp.json();
+        if (json.error) throw new Error(json.error.message || 'Upload failed');
+        if (ob) ob.style.width = '100%';
+        if (ol) ol.textContent = '✓ Sent! Thank you, ' + gn + '!';
+        setTimeout(function() {
+          if (ov) ov.style.display = 'none';
+          var vr = document.getElementById('vrOverlay');
+          if (vr) vr.classList.remove('active');
+          window._vrBlob = null;
+        }, 3000);
+      } catch (err) {
+        window._sendError = err.message;
+        if (ol) ol.textContent = 'Upload failed: ' + err.message;
+        if (ob) ob.style.width = '0%';
+        setTimeout(function() { if (ov) ov.style.display = 'none'; }, 5000);
+      }
+    });
+  }, 800);
+});
+</script>
 </body>
 </html>
