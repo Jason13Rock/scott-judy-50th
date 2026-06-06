@@ -569,18 +569,14 @@ function copyLink() {
     el('vrStatus').innerHTML='';el('vrUpFill').style.width='5%';
     el('vrUpLabel').textContent='Sending your video…';el('vrMsg').textContent='';
     try{
-      const gn=window._gN||'Guest';const ge=window._gE||'';
-      const reader=new FileReader();
-      const b64=await new Promise(res=>{reader.onload=e=>res(e.target.result.split(',')[1]);reader.readAsDataURL(b);});
-      el('vrUpFill').style.width='40%';el('vrUpLabel').textContent='Uploading…';
-      const fd=new FormData();
-      fd.append('fileData',b64);fd.append('fileName',fname);
-      fd.append('mimeType',b.type||'video/webm');
-      fd.append('guestName',gn);fd.append('guestEmail',ge);
-      const resp=await fetch('https://script.google.com/macros/s/AKfycby6LUKG5Tk5yFEjDAI2b3K-OurV5E5lcuY5EcAP592kI4ryEkrr6fLl2gE2Y8ZXTAGzDg/exec',{method:'POST',body:fd});
-      const json=await resp.json();
-      if(!json.success)throw new Error(json.error||'Upload failed');
-      el('vrUpFill').style.width='100%';
+      const fd=new FormData();fd.append('file',b,fname);
+      await new Promise((resolve,reject)=>{
+        const xhr=new XMLHttpRequest();
+        xhr.upload.onprogress=e=>{if(e.lengthComputable){const p=Math.round(e.loaded/e.total*100);el('vrUpFill').style.width=p+'%';el('vrUpLabel').textContent='Uploading… '+p+'%';}};
+        xhr.onload=()=>{if(xhr.status<500)resolve();else reject(new Error(xhr.status));};
+        xhr.onerror=()=>reject(new Error('network'));xhr.ontimeout=()=>reject(new Error('timeout'));
+        xhr.timeout=60000;xhr.open('POST',DBX+'/upload');xhr.send(fd);
+      });
       el('vrUpFill').style.width='100%';el('vrUpLabel').textContent='✓ Sent! Thank you!';
       el('vrTimer').textContent='✓';el('vrMsg').textContent='Your video has been sent. Scott & Judy will love it!';
       const ms=document.getElementById('uploadStatus');
@@ -632,38 +628,7 @@ function copyLink() {
   let _facingFront=false;
   function _init(){
     el('vrStop').addEventListener('click',doStop);
-    el('vrSend').addEventListener('click',function(){
-      var b=blob||window._vrBlob;
-      if(!b){el('vrMsg').textContent='No video found. Please retake.';return;}
-      var gn=window._gN||'Guest';
-      var ge=window._gE||'';
-      phase('upload');
-      el('vrUpLabel').textContent='Uploading…';
-      el('vrUpFill').style.width='30%';
-      var reader=new FileReader();
-      reader.onload=function(ev){
-        var fd=new FormData();
-        fd.append('fileData',ev.target.result.split(',')[1]);
-        fd.append('fileName','video_'+Date.now()+'.webm');
-        fd.append('mimeType',b.type||'video/webm');
-        fd.append('guestName',gn);
-        fd.append('guestEmail',ge);
-        el('vrUpFill').style.width='60%';
-        fetch('https://script.google.com/macros/s/AKfycby6LUKG5Tk5yFEjDAI2b3K-OurV5E5lcuY5EcAP592kI4ryEkrr6fLl2gE2Y8ZXTAGzDg/exec',{method:'POST',body:fd})
-        .then(function(r){return r.json();})
-        .then(function(d){
-          el('vrUpFill').style.width='100%';
-          if(d.success){
-            el('vrUpLabel').textContent='Sent! Thank you, '+gn+'!';
-          } else {
-            el('vrUpLabel').textContent='Upload failed. '+( d.error||'Please try again.');
-          }
-        }).catch(function(){
-          el('vrUpLabel').textContent='Upload failed. Check your connection.';
-        });
-      };
-      reader.readAsDataURL(b);
-    });
+    el('vrSend').addEventListener('click',doSend);
     el('vrRetake').addEventListener('click',doRetake);
     el('vrClose').addEventListener('click',doClose);
     el('vrFlip').addEventListener('click',async()=>{
