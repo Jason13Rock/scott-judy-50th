@@ -764,5 +764,7 @@ function uploadAS(file){
   r.readAsDataURL(file);
 }
 </script>
+
+<div id="mjUploadOv" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.88);align-items:center;justify-content:center;"><div style="background:#1a1008;border-radius:12px;padding:2rem;max-width:320px;width:90%;text-align:center;"><div id="mjUploadLbl" style="font-size:1rem;font-weight:600;color:#fff;margin-bottom:1rem;">Uploading…</div><div style="width:100%;height:8px;background:rgba(255,255,255,0.2);border-radius:4px;overflow:hidden;"><div id="mjUploadBar" style="height:100%;background:#4a7c3f;border-radius:4px;width:0%;transition:width 0.3s;"></div></div></div></div>
 </body>
 </html>
