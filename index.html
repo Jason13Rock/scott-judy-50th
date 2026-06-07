@@ -695,13 +695,17 @@ function copyLink() {
 
 @media (orientation: landscape) and (max-height: 500px) {
   #vrOverlay { flex-direction: row; align-items: stretch; }
-  #vrLive, #vrPreview { flex: 1 1 0%; min-width: 0; object-fit: cover; }
+  #vrLive, #vrPreview { flex: 1 1 0%; min-width: 0; object-fit: contain; background: #000; }
   #vrControls { width: 200px; min-width: 160px; flex-shrink: 0; padding: 10px 12px 16px; gap: 6px; overflow-y: auto; justify-content: center; }
   #vrTimer { font-size: 26px; }
   .vrBtn { padding: 10px 12px; font-size: 14px; }
   #vrFlip { padding: 8px 12px; font-size: 13px; }
   #vrBarWrap { margin: 2px 0; }
 }
+#vrRotateMsg { display: none; position: fixed; inset: 0; background: rgba(26,16,8,0.97); z-index: 10000; flex-direction: column; align-items: center; justify-content: center; color: #fff; font-family: Jost, sans-serif; text-align: center; gap: 24px; }
+#vrRotateMsg p { font-size: 16px; letter-spacing: 2px; text-transform: uppercase; max-width: 260px; line-height: 1.8; color: rgba(255,255,255,0.85); }
+#vrRotateIcon { font-size: 56px; animation: vrRotateSpin 2s ease-in-out infinite; }
+@keyframes vrRotateSpin { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(90deg); } }
 </style>
 <div id="vrOverlay">
   <button id="vrClose">&#x2715;</button>
@@ -845,6 +849,27 @@ window.addEventListener('load', function() {
     });
   }, 800);
 });
+</script>
+
+<div id="vrRotateMsg"><div id="vrRotateIcon">📱</div><p>Rotate your device sideways to record</p></div>
+<script>
+(function(){
+  var msg = document.getElementById('vrRotateMsg');
+  var overlay = document.getElementById('vrOverlay');
+  function check(){
+    var active = overlay && overlay.classList.contains('active');
+    var portrait = window.innerHeight > window.innerWidth;
+    msg.style.display = (active && portrait) ? 'flex' : 'none';
+  }
+  window.addEventListener('resize', check);
+  window.addEventListener('orientationchange', check);
+  if(overlay){ new MutationObserver(function(){ 
+    if(overlay.classList.contains('active')){ try{ screen.orientation.lock('landscape').catch(function(){}); }catch(e){} }
+    else{ try{ screen.orientation.unlock(); }catch(e){} msg.style.display='none'; }
+    check();
+  }).observe(overlay, {attributes:true, attributeFilter:['class']}); }
+  check();
+})();
 </script>
 </body>
 </html>
