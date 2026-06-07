@@ -856,18 +856,36 @@ window.addEventListener('load', function() {
 (function(){
   var msg = document.getElementById('vrRotateMsg');
   var overlay = document.getElementById('vrOverlay');
+  var live = document.getElementById('vrLive');
+
+  function isPortrait(){ return window.innerHeight > window.innerWidth; }
+
+  function restartCamera(){
+    if(!live || !live.srcObject) return;
+    live.srcObject.getTracks().forEach(function(t){ t.stop(); });
+    navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},
+      audio:true
+    }).then(function(stream){ live.srcObject = stream; }).catch(function(){});
+  }
+
   function check(){
     var active = overlay && overlay.classList.contains('active');
-    var portrait = window.innerHeight > window.innerWidth;
+    var portrait = isPortrait();
+    var wasHidden = msg.style.display === 'none' || msg.style.display === '';
     msg.style.display = (active && portrait) ? 'flex' : 'none';
+    if(active && wasHidden && !portrait){ restartCamera(); }
   }
-  window.addEventListener('resize', check);
-  window.addEventListener('orientationchange', check);
-  if(overlay){ new MutationObserver(function(){ 
+
+  window.addEventListener('resize', function(){ setTimeout(check, 200); });
+  window.addEventListener('orientationchange', function(){ setTimeout(check, 400); });
+
+  if(overlay){ new MutationObserver(function(){
     if(overlay.classList.contains('active')){ try{ screen.orientation.lock('landscape').catch(function(){}); }catch(e){} }
     else{ try{ screen.orientation.unlock(); }catch(e){} msg.style.display='none'; }
     check();
   }).observe(overlay, {attributes:true, attributeFilter:['class']}); }
+
   check();
 })();
 </script>
