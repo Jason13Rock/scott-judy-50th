@@ -670,20 +670,25 @@ function copyLink() {
       },3000);
     }catch(err){
       window._sendError=err.message;
-      if(ol)ol.textContent='Upload failed: '+err.message;
+      if(ol)ol.textContent='Unable to send. Please check your connection and try again.';
       if(ob)ob.style.width='0%';
-      setTimeout(function(){if(ov)ov.style.display='none';},5000);
+      // Re-enable send button so they can retry
+      if(sendBtn){sendBtn.textContent='Send';sendBtn.style.background='';sendBtn.style.pointerEvents='auto';}
+      setTimeout(function(){if(ov)ov.style.display='none';},4000);
     }
   }
   async function doRetake(){
-    window._vrBlob=null;blob=null;
+    window._vrBlob=null;blob=null;chunks=[];
     const pv=el('vrPreview');if(pv.src){URL.revokeObjectURL(pv.src);pv.src='';}
     el('vrControls').querySelectorAll('.vrBtn:not(#vrStop):not(#vrSend):not(#vrRetake)').forEach(b=>b.remove());
+    // Reset send button in case it was disabled by a failed upload
+    var sb=el('vrSend');if(sb){sb.textContent='Send';sb.style.background='';sb.style.pointerEvents='auto';}
     el('vrTimer').style.fontSize='';el('vrTimer').className='';el('vrTimer').textContent='1:00';
     el('vrStatus').innerHTML='';el('vrStatus').style.cssText='';el('vrBarFill').style.width='0%';
     el('vrMsg').style.cssText='';el('vrMsg').textContent='Starting camera…';
     el('vrPreview').style.display='none';phase('reset');el('vrLive').style.display='block';
-    const ok=await startCam(true);if(ok){el('vrMsg').textContent='';startRecording();}
+    stopTicker();
+    await startCam(true); // startCam already calls startRecording() internally
   }
   function doClose(){
     stopTicker();if(recorder&&recorder.state!=='inactive')recorder.stop();stopStream();
@@ -756,11 +761,11 @@ function copyLink() {
 
 @media (orientation: landscape) and (max-height: 500px) {
   #vrOverlay { flex-direction: row; align-items: stretch; }
-  #vrLive, #vrPreview { flex: 1 1 0%; min-width: 0; object-fit: contain; background: #000; }
-  #vrControls { width: 200px; min-width: 160px; flex-shrink: 0; padding: 10px 12px 16px; gap: 6px; overflow-y: auto; justify-content: center; }
-  #vrTimer { font-size: 26px; }
-  .vrBtn { padding: 10px 12px; font-size: 14px; }
-  #vrFlip { padding: 8px 12px; font-size: 13px; }
+  #vrLive, #vrPreview { flex: 1 1 0%; min-width: 0; object-fit: contain; background: #000; order: 1; }
+  #vrControls { width: 150px; min-width: 130px; flex-shrink: 0; padding: 8px 10px 12px; gap: 5px; overflow-y: auto; justify-content: center; order: 2; }
+  #vrTimer { font-size: 22px; }
+  .vrBtn { padding: 8px 10px; font-size: 12px; }
+  #vrFlip { padding: 6px 10px; font-size: 11px; }
   #vrBarWrap { margin: 2px 0; }
 }
 #vrRotateMsg { display: none; position: fixed; inset: 0; background: rgba(26,16,8,0.97); z-index: 10000; flex-direction: column; align-items: center; justify-content: center; color: #fff; font-family: Jost, sans-serif; text-align: center; gap: 24px; }
