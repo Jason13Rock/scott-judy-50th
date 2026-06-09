@@ -401,9 +401,9 @@ footer{
     <div class="record-note" data-en="Opens your camera on mobile · 60 sec max · no account needed" data-fr="Ouvre votre caméra sur mobile · 60 sec max · aucun compte requis" data-hu="Megnyitja a kamerát · max 60 mp · nincs szükség fiókra">Opens your camera on mobile · 60 sec max · no account needed</div>
     <div class="upload-status" id="uploadStatus"></div>
     <button class="upload-alt-btn" onclick="showUploadAlt()"
-      data-en="📁  Already have a video? Upload from your phone"
-      data-fr="📁  Vous avez déjà une vidéo ? Téléversez depuis votre téléphone"
-      data-hu="📁  Van már videód? Töltsd fel a telefonodról">📁  Already have a video? Upload from your phone</button>
+      data-en="📁  Already have a video? Choose from your phone"
+      data-fr="📁  Vous avez déjà une vidéo ? Choisir depuis votre téléphone"
+      data-hu="📁  Van már videód? Válassz a telefonodról">📁  Already have a video? Upload from your phone</button>
   </div>
 
 
@@ -796,6 +796,11 @@ function guestSubmitClick(){
   if(!n){document.getElementById("guestError").style.display="block";return;}
   _gN=n;_gE=(document.getElementById("guestEmail").value||"").trim();
   document.getElementById("guestModal").style.display="none";
+  if(window._uploadMode==='file'){
+    window._uploadMode=null;
+    document.getElementById('videoUploadInput').click();
+    return;
+  }
   document.getElementById("guestReadyName").textContent=_gN;
   var tm=document.getElementById("guestTapModal");tm.style.display="flex";tm.style.pointerEvents="auto";
 }
