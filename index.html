@@ -542,12 +542,19 @@ function copyLink() {
   let stream=null,recorder=null,chunks=[],tickerId=null,secsLeft=60,blob=null;
   function fmt(s){return Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60);}
   function phase(p){
-    el('vrStop').style.display=(p==='rec')?'block':'none';
-    el('vrActionRow').className=(p==='preview')?'on':'';
+    var isRec=(p==='rec');
+    var isPreview=(p==='preview');
+    // During recording: hide the whole controls panel except a minimal overlay
+    el('vrControls').style.display=isRec?'none':'flex';
+    // Show a minimal recording HUD (timer + stop) overlaid on video during rec
+    var hud=el('vrRecHud');
+    if(hud) hud.style.display=isRec?'flex':'none';
+    el('vrStop').style.display=isRec?'block':'none';
+    el('vrActionRow').className=isPreview?'on':'';
     el('vrUpload').className=(p==='upload'||p==='done')?'on':'';
-    el('vrLive').style.display=(p==='rec')?'block':'none';
-    el('vrPreview').style.display=(p==='preview'||p==='done')?'block':'none';
-    if(p!=='rec' && el('vrFlip')) el('vrFlip').className='';
+    el('vrLive').style.display=isRec?'block':'none';
+    el('vrPreview').style.display=(isPreview||p==='done')?'block':'none';
+    if(!isRec && el('vrFlip')) el('vrFlip').className='';
   }
   function stopStream(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}el('vrLive').srcObject=null;}
   function stopTicker(){if(tickerId){clearInterval(tickerId);tickerId=null;}}
@@ -618,8 +625,11 @@ function copyLink() {
     el('vrFlip').className='visible';
     tickerId=setInterval(()=>{
       secsLeft--;if(secsLeft<0){doStop();return;}
-      el('vrBarFill').style.width=((60-secsLeft)/60*100)+'%';el('vrTimer').textContent=fmt(secsLeft);
-      if(secsLeft<=10)el('vrTimer').className='warn';if(secsLeft<=0)doStop();
+      el('vrBarFill').style.width=((60-secsLeft)/60*100)+'%';
+      var tf=fmt(secsLeft);el('vrTimer').textContent=tf;
+      var hh=el('vrHudTimer');if(hh)hh.textContent=tf;
+      if(secsLeft<=10){el('vrTimer').className='warn';if(hh)hh.style.color='#ff6b6b';}
+      if(secsLeft<=0)doStop();
     },1000);
   }
   function doStop(){stopTicker();if(recorder&&recorder.state!=='inactive')recorder.stop();}
@@ -683,7 +693,7 @@ function copyLink() {
     el('vrControls').querySelectorAll('.vrBtn:not(#vrStop):not(#vrSend):not(#vrRetake)').forEach(b=>b.remove());
     // Reset send button in case it was disabled by a failed upload
     var sb=el('vrSend');if(sb){sb.textContent='Send';sb.style.background='';sb.style.pointerEvents='auto';}
-    el('vrTimer').style.fontSize='';el('vrTimer').className='';el('vrTimer').textContent='1:00';
+    el('vrTimer').style.fontSize='';el('vrTimer').className='';el('vrTimer').textContent='1:00';var hh=el('vrHudTimer');if(hh){hh.textContent='1:00';hh.style.color='#fff';}
     el('vrStatus').innerHTML='';el('vrStatus').style.cssText='';el('vrBarFill').style.width='0%';
     el('vrMsg').style.cssText='';el('vrMsg').textContent='Starting camera…';
     el('vrPreview').style.display='none';phase('reset');el('vrLive').style.display='block';
@@ -760,14 +770,16 @@ function copyLink() {
 #vrFlip.visible{display:block;}
 
 @media (orientation: landscape) and (max-height: 500px) {
-  #vrOverlay { flex-direction: row; align-items: stretch; }
-  #vrLive, #vrPreview { flex: 1 1 0%; min-width: 0; object-fit: contain; background: #000; order: 1; }
-  #vrControls { width: 150px; min-width: 130px; flex-shrink: 0; padding: 8px 10px 12px; gap: 5px; overflow-y: auto; justify-content: center; order: 2; }
-  #vrTimer { font-size: 22px; }
-  .vrBtn { padding: 8px 10px; font-size: 12px; }
-  #vrFlip { padding: 6px 10px; font-size: 11px; }
+  #vrOverlay { flex-direction: column; align-items: stretch; }
+  #vrLive, #vrPreview { flex: 1 1 0%; min-height: 0; object-fit: contain; background: #000; }
+  #vrControls { flex-shrink: 0; padding: 10px 16px 16px; gap: 8px; }
+  #vrTimer { display: none; }
+  .vrBtn { padding: 10px 16px; font-size: 14px; }
   #vrBarWrap { margin: 2px 0; }
+  #vrRecHud { padding: 8px 14px; }
+  #vrHudTimer { font-size: 22px; }
 }
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 #vrRotateMsg { display: none; position: fixed; inset: 0; background: rgba(26,16,8,0.97); z-index: 10000; flex-direction: column; align-items: center; justify-content: center; color: #fff; font-family: Jost, sans-serif; text-align: center; gap: 24px; }
 #vrRotateMsg p { font-size: 16px; letter-spacing: 2px; text-transform: uppercase; max-width: 260px; line-height: 1.8; color: rgba(255,255,255,0.85); }
 #vrRotateIcon { font-size: 56px; animation: vrRotateSpin 2s ease-in-out infinite; }
@@ -777,11 +789,17 @@ function copyLink() {
   <button id="vrClose">&#x2715;</button>
   <video id="vrLive" autoplay playsinline muted></video>
   <video id="vrPreview" playsinline controls></video>
-  <div id="vrControls">
-    <div id="vrTimer">1:00</div>
+  <div id="vrRecHud" style="display:none;position:absolute;bottom:0;left:0;right:0;z-index:10;padding:12px 16px;display:none;align-items:center;justify-content:space-between;background:linear-gradient(transparent,rgba(0,0,0,0.5));">
+    <div id="vrHudTimer" style="font-size:28px;font-weight:700;color:#fff;letter-spacing:2px;font-family:monospace;">1:00</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span id="vrHudDot" style="width:10px;height:10px;border-radius:50%;background:#e55;animation:blink 1s infinite;"></span>
+      <button id="vrStop" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.4);padding:8px 18px;border-radius:4px;font-size:14px;cursor:pointer;letter-spacing:1px;">&#x23F9; Stop</button>
+    </div>
+  </div>
+<div id="vrControls">
+    <div id="vrTimer" style="display:none">1:00</div>
     <div id="vrBarWrap"><div id="vrBarFill"></div></div>
     <div id="vrStatus"></div>
-    <button class="vrBtn" id="vrStop" style="display:none">&#x23F9; Stop Recording</button>
     <button id="vrFlip">&#x1F504; Flip Camera</button>
     <div id="vrActionRow">
       <button class="vrBtn" id="vrSend">&#x2713; Send Video</button>
