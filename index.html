@@ -561,13 +561,11 @@ function copyLink() {
   let facingMode='user';
   async function startCam(preferFront=true){
     try{
-      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facingMode},width:{ideal:1920},height:{ideal:1080},aspectRatio:{ideal:1.7778}},audio:true});
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facingMode},width:{ideal:1280},height:{ideal:720}},audio:true});
       el('vrLive').srcObject=stream;
       var lv=el('vrLive');
       lv.style.objectFit='cover';lv.style.width='100%';lv.style.height='100%';
       await lv.play().catch(()=>{});
-      // Apply portrait rotation immediately if needed
-      if(isPortrait()) applyPortraitRotation();
       // Screen lock fix: watch for stream ending unexpectedly (iOS screen lock)
       stream.getTracks().forEach(function(track){
         track.addEventListener('ended', function(){
@@ -993,7 +991,7 @@ window.addEventListener('load', function() {
 
   function applyPortraitRotation(){
     var liveEl = el('vrLive');
-    if(!liveEl) return;
+    if(!liveEl || !liveEl.srcObject) return;
     var container = el('vrOverlay');
     var cw = container ? container.clientWidth : window.innerWidth;
     var ch = container ? container.clientHeight : window.innerHeight;
