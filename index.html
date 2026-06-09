@@ -776,20 +776,14 @@ function copyLink() {
 #vrFlip.visible{display:block;}
 
 @media (orientation: landscape) and (max-height: 500px) {
-  #vrOverlay { flex-direction: column; align-items: stretch; }
-  #vrLive, #vrPreview { flex: 1 1 0%; min-height: 0; object-fit: contain; background: #000; }
+  #vrOverlay { flex-direction: column; align-items: stretch; position: relative; }
+  #vrLive { position: absolute; inset: 0; width: 100% !important; height: 100% !important; object-fit: cover !important; flex: none; transform: none !important; }
+  #vrPreview { flex: 1 1 0%; min-height: 0; object-fit: contain; background: #000; }
   #vrControls { flex-shrink: 0; padding: 10px 16px 16px; gap: 8px; flex-wrap: wrap; justify-content: center; flex-direction: row; }
   #vrTimer { display: none; }
   .vrBtn { padding: 8px 16px; font-size: 13px; }
   #vrBarWrap { margin: 2px 0; }
-  #vrRecHud { padding: 10px 20px calc(10px + env(safe-area-inset-bottom)) 14px; }
-  #vrLive.portrait-rotate {
-    position: absolute;
-    /* rotate 90deg and scale to fill landscape frame */
-    transform-origin: center center;
-    transform: rotate(90deg);
-    /* will be sized by JS */
-  }
+  #vrRecHud { padding: 10px max(20px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left)); }
   #vrHudTimer { font-size: 22px; }
 }
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
