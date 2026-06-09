@@ -644,55 +644,81 @@ function copyLink() {
   
   
   async function doSend(){
-    const b=window._vrBlob;if(!b)return;
+    const b=window._vrBlob;if(!b){alert('No video found — please record again.');return;}
     const gn=window._gN||'Guest';const ge=window._gE||'';
     const fname='message-'+Date.now()+'.webm';
-    // Immediate visual feedback on the button itself
     const sendBtn=document.getElementById('vrSend');
-    if(sendBtn){sendBtn.textContent='Sending…';sendBtn.style.background='#888';sendBtn.style.pointerEvents='none';}
-    // Create overlay
+
+    // Reset any previous overlay completely
     var ov=document.getElementById('mjUploadOv');
-    if(!ov){
-      ov=document.createElement('div');
-      ov.id='mjUploadOv';
-      ov.innerHTML='<div style="background:#1a1008;border-radius:12px;padding:2rem;max-width:320px;width:90%;text-align:center;"><div id="mjUploadLbl" style="font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:1rem;">Uploading…</div><div style="width:100%;height:10px;background:rgba(255,255,255,0.2);border-radius:5px;overflow:hidden;"><div id="mjUploadBar" style="height:100%;background:#4a7c3f;border-radius:5px;width:10%;transition:width 0.5s;"></div></div></div>';
-      document.body.appendChild(ov);
-    }
+    if(ov) ov.remove();
+    ov=document.createElement('div');
+    ov.id='mjUploadOv';
+    ov.innerHTML='<div style="background:#1a1008;border-radius:12px;padding:2rem;max-width:320px;width:90%;text-align:center;"><div id="mjUploadLbl" style="font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:1rem;">Uploading…</div><div style="width:100%;height:10px;background:rgba(255,255,255,0.2);border-radius:5px;overflow:hidden;"><div id="mjUploadBar" style="height:100%;background:#4a7c3f;border-radius:5px;width:5%;transition:width 0.3s;"></div></div><div id="mjUploadPct" style="color:rgba(255,255,255,0.6);font-size:0.85rem;margin-top:8px;">0%</div></div>';
+    document.body.appendChild(ov);
     ov.style.cssText='position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;';
+
+    if(sendBtn){sendBtn.textContent='Sending…';sendBtn.style.background='#888';sendBtn.style.pointerEvents='none';}
+
     var ol=document.getElementById('mjUploadLbl');
     var ob=document.getElementById('mjUploadBar');
+    var op=document.getElementById('mjUploadPct');
+
+    function setProgress(pct){
+      if(ob) ob.style.width=pct+'%';
+      if(op) op.textContent=Math.round(pct)+'%';
+    }
+
+    function showError(msg){
+      if(ol) ol.textContent=msg;
+      if(ob) ob.style.background='#c0392b';
+      setProgress(100);
+      if(sendBtn){sendBtn.textContent='Try Again';sendBtn.style.background='#c8783a';sendBtn.style.pointerEvents='auto';}
+      setTimeout(function(){if(ov&&ov.parentNode)ov.remove();},5000);
+    }
+
     try{
-      if(ob)ob.style.width='30%';
-      var fd=new FormData();
-      fd.append('file',b,fname);
-      fd.append('upload_preset','scott_judy_uploads');
-      fd.append('context','guestName='+encodeURIComponent(gn)+'|guestEmail='+encodeURIComponent(ge));
-      // Timeout after 120 seconds
-      var ctrl=new AbortController();
-      var timeoutId=setTimeout(function(){ctrl.abort();},120000);
-      var resp=await fetch('https://api.cloudinary.com/v1_1/dgcbq2qlk/video/upload',{method:'POST',body:fd,signal:ctrl.signal});
-      clearTimeout(timeoutId);
-      if(!resp.ok)throw new Error('Server error '+resp.status);
-      var json=await resp.json();
-      if(json.error)throw new Error(json.error.message||'Upload failed');
-      if(ob)ob.style.width='100%';
-      if(ol)ol.textContent='✓ Sent! Thank you, '+gn+'!';
+      setProgress(20);
+      // Use XMLHttpRequest so we get real progress events and can't get stuck silently
+      await new Promise(function(resolve, reject){
+        var xhr=new XMLHttpRequest();
+        xhr.open('POST','https://api.cloudinary.com/v1_1/dgcbq2qlk/video/upload');
+        xhr.timeout=90000; // 90 second hard timeout
+        xhr.upload.onprogress=function(e){
+          if(e.lengthComputable) setProgress(20+Math.round(e.loaded/e.total*70));
+        };
+        xhr.onload=function(){
+          if(xhr.status>=200&&xhr.status<300){
+            var json;
+            try{json=JSON.parse(xhr.responseText);}catch(e){reject(new Error('Bad response from server'));return;}
+            if(json.error) reject(new Error(json.error.message||'Upload rejected'));
+            else resolve(json);
+          } else {
+            reject(new Error('Server error '+xhr.status));
+          }
+        };
+        xhr.onerror=function(){reject(new Error('Network error — check your connection'));};
+        xhr.ontimeout=function(){reject(new Error('Upload timed out — try a shorter clip'));};
+        var fd=new FormData();
+        fd.append('file',b,fname);
+        fd.append('upload_preset','scott_judy_uploads');
+        fd.append('context','guestName='+encodeURIComponent(gn)+'|guestEmail='+encodeURIComponent(ge));
+        xhr.send(fd);
+      });
+      setProgress(100);
+      if(ol) ol.textContent='✓ Sent! Thank you, '+gn+'!';
+      if(ob) ob.style.background='#27ae60';
       setTimeout(function(){
-        if(ov)ov.style.display='none';
+        if(ov&&ov.parentNode) ov.remove();
         var vr=document.getElementById('vrOverlay');
-        if(vr)vr.classList.remove('active');
+        if(vr) vr.classList.remove('active');
         window._vrBlob=null;
       },3000);
     }catch(err){
-      window._sendError=err.message;
-      var errMsg=err.name==='AbortError'?'Upload timed out — video may be too large. Try a shorter clip.':'Unable to send: '+err.message+'. Please try again.';
-      if(ol)ol.textContent=errMsg;
-      if(ob)ob.style.width='0%';
-      // Re-enable send button so they can retry
-      if(sendBtn){sendBtn.textContent='Try Again';sendBtn.style.background='#c8783a';sendBtn.style.pointerEvents='auto';}
-      setTimeout(function(){if(ov)ov.style.display='none';},6000);
+      showError('Upload failed: '+err.message);
     }
   }
+
   async function doRetake(){
     window._vrBlob=null;blob=null;chunks=[];
     const pv=el('vrPreview');if(pv.src){URL.revokeObjectURL(pv.src);pv.src='';}
