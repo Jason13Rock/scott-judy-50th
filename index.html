@@ -612,12 +612,13 @@ function copyLink() {
       stopStream();phase('preview');el('vrTimer').textContent='Preview';el('vrTimer').style.fontSize='32px';
       el('vrStatus').innerHTML='';el('vrMsg').textContent='Happy with it? Tap Send — or retake.';
     };
-    recorder.start(1000);phase('rec');el('vrStatus').innerHTML='<span class="vrDot"></span> Recording…';
+    stopTicker();recorder.start(1000);phase('rec');el('vrStatus').innerHTML='<span class="vrDot"></span> Recording…';
     el('vrTimer').style.fontSize='';el('vrTimer').className='';el('vrTimer').textContent=fmt(60);
     el('vrBarFill').style.width='0%';el('vrMsg').textContent='';secsLeft=60;
     el('vrFlip').className='visible';
     tickerId=setInterval(()=>{
-      secsLeft--;el('vrBarFill').style.width=((60-secsLeft)/60*100)+'%';el('vrTimer').textContent=fmt(secsLeft);
+      secsLeft--;if(secsLeft<0){doStop();return;}
+      el('vrBarFill').style.width=((60-secsLeft)/60*100)+'%';el('vrTimer').textContent=fmt(secsLeft);
       if(secsLeft<=10)el('vrTimer').className='warn';if(secsLeft<=0)doStop();
     },1000);
   }
