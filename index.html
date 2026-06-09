@@ -646,7 +646,9 @@ function copyLink() {
   async function doSend(){
     const b=window._vrBlob;if(!b){alert('No video found — please record again.');return;}
     const gn=window._gN||'Guest';const ge=window._gE||'';
-    const fname='message-'+Date.now()+'.webm';
+    // Use correct extension based on actual blob type (iOS records MP4, Android WebM)
+    var ext = b.type.includes('mp4') ? 'mp4' : b.type.includes('quicktime') ? 'mov' : 'webm';
+    const fname='message-'+Date.now()+'.'+ext;
     const sendBtn=document.getElementById('vrSend');
 
     // Reset any previous overlay completely
@@ -664,6 +666,7 @@ function copyLink() {
     var ob=document.getElementById('mjUploadBar');
     var op=document.getElementById('mjUploadPct');
 
+    console.log('[Upload] blob size:', b.size, 'type:', b.type, 'filename:', fname);
     function setProgress(pct){
       if(ob) ob.style.width=pct+'%';
       if(op) op.textContent=Math.round(pct)+'%';
@@ -688,6 +691,7 @@ function copyLink() {
           if(e.lengthComputable) setProgress(20+Math.round(e.loaded/e.total*70));
         };
         xhr.onload=function(){
+          console.log('[Upload] xhr.status:', xhr.status, 'response:', xhr.responseText.slice(0,200));
           if(xhr.status>=200&&xhr.status<300){
             var json;
             try{json=JSON.parse(xhr.responseText);}catch(e){reject(new Error('Bad response from server'));return;}
