@@ -802,7 +802,7 @@ function copyLink() {
   <button id="vrClose">&#x2715;</button>
   <video id="vrLive" autoplay playsinline muted></video>
   <video id="vrPreview" playsinline controls></video>
-  <div id="vrRecHud" style="display:none;position:absolute;bottom:0;left:0;right:0;z-index:10;padding:16px 24px 32px 16px;display:none;align-items:center;justify-content:space-between;background:linear-gradient(transparent,rgba(0,0,0,0.7));">
+  <div id="vrRecHud" style="display:none;position:absolute;bottom:0;left:0;right:0;z-index:10;padding:16px max(24px,env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));display:none;align-items:center;justify-content:space-between;background:linear-gradient(transparent,rgba(0,0,0,0.7));">
     <div style="display:flex;align-items:center;gap:8px;">
       <button id="vrStop" style="background:rgba(220,60,60,0.85);color:#fff;border:none;padding:10px 20px;border-radius:4px;font-size:14px;cursor:pointer;letter-spacing:1px;">&#x23F9; Stop</button>
       <span id="vrHudDot" style="width:10px;height:10px;border-radius:50%;background:#e55;animation:blink 1s infinite;"></span>
