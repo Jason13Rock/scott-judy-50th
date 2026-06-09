@@ -561,7 +561,7 @@ function copyLink() {
   let facingMode='user';
   async function startCam(preferFront=true){
     try{
-      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facingMode},width:{ideal:1280},height:{ideal:720}},audio:true});
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facingMode},width:{ideal:1920},height:{ideal:1080},aspectRatio:{ideal:1.7778}},audio:true});
       el('vrLive').srcObject=stream;
       var lv=el('vrLive');
       lv.style.objectFit='cover';lv.style.width='100%';lv.style.height='100%';
@@ -747,8 +747,8 @@ function copyLink() {
 <style>
 #vrOverlay{display:none;position:fixed;inset:0;background:#1a1008;z-index:9999;flex-direction:column;align-items:center;font-family:'Jost',sans-serif;padding-bottom:env(safe-area-inset-bottom)}
 #vrOverlay.active{display:flex;height:100dvh}
-#vrLive{width:100%;flex:1;min-height:0;object-fit:cover;background:#000}
-#vrPreview{width:100%;flex:1;min-height:0;object-fit:cover;background:#000;display:none}
+#vrLive{width:100%;max-height:100%;object-fit:contain;background:#000;flex:1;min-height:0}
+#vrPreview{width:100%;max-height:100%;object-fit:contain;background:#000;flex:1;min-height:0;display:none}
 #vrControls{width:100%;padding:16px 20px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;flex-shrink:0}
 #vrTimer{font-size:52px;font-weight:700;color:#fff;letter-spacing:2px;line-height:1;text-align:center}
 #vrTimer.warn{color:#e05c2a;animation:vrPulse 1s infinite}
@@ -985,27 +985,16 @@ window.addEventListener('load', function() {
   function onOrientChange(){
     if(!overlay.classList.contains('active')) return;
     if(!isPortrait()){
-      // Rotated to landscape — hide nudge and start camera
-      if(msg.style.display === 'flex'){
-        msg.style.display = 'none';
-        window._vrRotateMode = false;
-        window.startCameraDirectly && window.startCameraDirectly();
-      }
-      // Bug fix 3: fix video distortion when orientation changes mid-recording
+      // Landscape — ensure video fills properly
       if(liveEl && liveEl.srcObject){
-        liveEl.style.objectFit = 'cover';
+        liveEl.style.objectFit = 'contain';
         liveEl.style.width = '100%';
         liveEl.style.height = '100%';
       }
     } else {
-      // Rotated back to portrait mid-session — show nudge again but DON'T stop recording
-      // Only show if not yet recording (still in rotate-wait state)
-      if(window._vrRotateMode){
-        msg.style.display = 'flex';
-      }
-      // Fix distortion in portrait
+      // Portrait mode — keep filming, just letterboxed. No nudge needed.
       if(liveEl && liveEl.srcObject){
-        liveEl.style.objectFit = 'cover';
+        liveEl.style.objectFit = 'contain';
         liveEl.style.width = '100%';
         liveEl.style.height = '100%';
       }
@@ -1022,13 +1011,10 @@ window.addEventListener('load', function() {
       window._vrRotateMode = false;
       try{ screen.orientation.unlock(); }catch(e){}
     } else {
-      // Overlay just opened — show rotate nudge if portrait
-      if(isPortrait()){
-        window._vrRotateMode = true;
-        msg.style.display = 'flex';
-      } else {
-        window._vrRotateMode = false;
-      }
+      // Overlay just opened — always start camera immediately, no rotation required
+      window._vrRotateMode = false;
+      msg.style.display = 'none';
+      // Try to lock landscape on Android (ignored gracefully on iOS)
       try{ screen.orientation.lock('landscape').catch(function(){}); }catch(e){}
     }
   }).observe(overlay, {attributes:true, attributeFilter:['class']}); }
