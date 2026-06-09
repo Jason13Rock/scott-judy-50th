@@ -667,7 +667,12 @@ function copyLink() {
       fd.append('file',b,fname);
       fd.append('upload_preset','scott_judy_uploads');
       fd.append('context','guestName='+encodeURIComponent(gn)+'|guestEmail='+encodeURIComponent(ge));
-      var resp=await fetch('https://api.cloudinary.com/v1_1/dgcbq2qlk/video/upload',{method:'POST',body:fd});
+      // Timeout after 120 seconds
+      var ctrl=new AbortController();
+      var timeoutId=setTimeout(function(){ctrl.abort();},120000);
+      var resp=await fetch('https://api.cloudinary.com/v1_1/dgcbq2qlk/video/upload',{method:'POST',body:fd,signal:ctrl.signal});
+      clearTimeout(timeoutId);
+      if(!resp.ok)throw new Error('Server error '+resp.status);
       var json=await resp.json();
       if(json.error)throw new Error(json.error.message||'Upload failed');
       if(ob)ob.style.width='100%';
@@ -680,11 +685,12 @@ function copyLink() {
       },3000);
     }catch(err){
       window._sendError=err.message;
-      if(ol)ol.textContent='Unable to send. Please check your connection and try again.';
+      var errMsg=err.name==='AbortError'?'Upload timed out — video may be too large. Try a shorter clip.':'Unable to send: '+err.message+'. Please try again.';
+      if(ol)ol.textContent=errMsg;
       if(ob)ob.style.width='0%';
       // Re-enable send button so they can retry
-      if(sendBtn){sendBtn.textContent='Send';sendBtn.style.background='';sendBtn.style.pointerEvents='auto';}
-      setTimeout(function(){if(ov)ov.style.display='none';},4000);
+      if(sendBtn){sendBtn.textContent='Try Again';sendBtn.style.background='#c8783a';sendBtn.style.pointerEvents='auto';}
+      setTimeout(function(){if(ov)ov.style.display='none';},6000);
     }
   }
   async function doRetake(){
@@ -790,11 +796,11 @@ function copyLink() {
   <video id="vrLive" autoplay playsinline muted></video>
   <video id="vrPreview" playsinline controls></video>
   <div id="vrRecHud" style="display:none;position:absolute;bottom:0;left:0;right:0;z-index:10;padding:12px 16px;display:none;align-items:center;justify-content:space-between;background:linear-gradient(transparent,rgba(0,0,0,0.5));">
-    <div id="vrHudTimer" style="font-size:28px;font-weight:700;color:#fff;letter-spacing:2px;font-family:monospace;">1:00</div>
     <div style="display:flex;align-items:center;gap:8px;">
+      <button id="vrStop" style="background:rgba(220,60,60,0.85);color:#fff;border:none;padding:10px 20px;border-radius:4px;font-size:14px;cursor:pointer;letter-spacing:1px;">&#x23F9; Stop</button>
       <span id="vrHudDot" style="width:10px;height:10px;border-radius:50%;background:#e55;animation:blink 1s infinite;"></span>
-      <button id="vrStop" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.4);padding:8px 18px;border-radius:4px;font-size:14px;cursor:pointer;letter-spacing:1px;">&#x23F9; Stop</button>
     </div>
+    <div id="vrHudTimer" style="font-size:28px;font-weight:700;color:#fff;letter-spacing:2px;font-family:monospace;">1:00</div>
   </div>
 <div id="vrControls">
     <div id="vrTimer" style="display:none">1:00</div>
