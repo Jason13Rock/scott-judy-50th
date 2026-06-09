@@ -745,8 +745,8 @@ function copyLink() {
 
 
 <style>
-#vrOverlay{display:none;position:fixed;inset:0;background:#1a1008;z-index:9999;flex-direction:column;align-items:center;font-family:'Jost',sans-serif}
-#vrOverlay.active{display:flex}
+#vrOverlay{display:none;position:fixed;inset:0;background:#1a1008;z-index:9999;flex-direction:column;align-items:center;font-family:'Jost',sans-serif;padding-bottom:env(safe-area-inset-bottom)}
+#vrOverlay.active{display:flex;height:100dvh}
 #vrLive{width:100%;flex:1;min-height:0;object-fit:cover;background:#000}
 #vrPreview{width:100%;flex:1;min-height:0;object-fit:cover;background:#000;display:none}
 #vrControls{width:100%;padding:16px 20px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;flex-shrink:0}
