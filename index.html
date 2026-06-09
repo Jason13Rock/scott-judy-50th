@@ -566,6 +566,8 @@ function copyLink() {
       var lv=el('vrLive');
       lv.style.objectFit='cover';lv.style.width='100%';lv.style.height='100%';
       await lv.play().catch(()=>{});
+      // Apply portrait rotation immediately if needed
+      if(isPortrait()) applyPortraitRotation();
       // Screen lock fix: watch for stream ending unexpectedly (iOS screen lock)
       stream.getTracks().forEach(function(track){
         track.addEventListener('ended', function(){
@@ -747,8 +749,8 @@ function copyLink() {
 <style>
 #vrOverlay{display:none;position:fixed;inset:0;background:#1a1008;z-index:9999;flex-direction:column;align-items:center;font-family:'Jost',sans-serif;padding-bottom:env(safe-area-inset-bottom)}
 #vrOverlay.active{display:flex;height:100dvh}
-#vrLive{width:100%;max-height:100%;object-fit:contain;background:#000;flex:1;min-height:0}
-#vrPreview{width:100%;max-height:100%;object-fit:contain;background:#000;flex:1;min-height:0;display:none}
+#vrLive{width:100%;max-height:100%;object-fit:cover;background:#000;flex:1;min-height:0}
+#vrPreview{width:100%;max-height:100%;object-fit:cover;background:#000;flex:1;min-height:0;display:none}
 #vrControls{width:100%;padding:16px 20px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;flex-shrink:0}
 #vrTimer{font-size:52px;font-weight:700;color:#fff;letter-spacing:2px;line-height:1;text-align:center}
 #vrTimer.warn{color:#e05c2a;animation:vrPulse 1s infinite}
@@ -783,6 +785,13 @@ function copyLink() {
   .vrBtn { padding: 8px 16px; font-size: 13px; }
   #vrBarWrap { margin: 2px 0; }
   #vrRecHud { padding: 10px 20px calc(10px + env(safe-area-inset-bottom)) 14px; }
+  #vrLive.portrait-rotate {
+    position: absolute;
+    /* rotate 90deg and scale to fill landscape frame */
+    transform-origin: center center;
+    transform: rotate(90deg);
+    /* will be sized by JS */
+  }
   #vrHudTimer { font-size: 22px; }
 }
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
@@ -982,22 +991,39 @@ window.addEventListener('load', function() {
     window.startCameraDirectly && window.startCameraDirectly();
   };
 
+  function applyPortraitRotation(){
+    var liveEl = el('vrLive');
+    if(!liveEl) return;
+    var container = el('vrOverlay');
+    var cw = container ? container.clientWidth : window.innerWidth;
+    var ch = container ? container.clientHeight : window.innerHeight;
+    // Rotate 90deg: video natural size is portrait (ch wide, cw tall after rotation)
+    var scale = cw / ch;
+    liveEl.style.position = 'absolute';
+    liveEl.style.width = ch + 'px';
+    liveEl.style.height = cw + 'px';
+    liveEl.style.top = '50%';
+    liveEl.style.left = '50%';
+    liveEl.style.transform = 'translate(-50%, -50%) rotate(90deg)';
+    liveEl.style.objectFit = 'cover';
+    liveEl.style.maxHeight = 'none';
+  }
+
   function onOrientChange(){
     if(!overlay.classList.contains('active')) return;
     if(!isPortrait()){
-      // Landscape — ensure video fills properly
-      if(liveEl && liveEl.srcObject){
-        liveEl.style.objectFit = 'contain';
+      // Landscape — normal fill, remove any portrait rotation
+      if(liveEl){
+        liveEl.classList.remove('portrait-rotate');
+        liveEl.style.transform = '';
         liveEl.style.width = '100%';
         liveEl.style.height = '100%';
+        liveEl.style.position = '';
+        liveEl.style.objectFit = 'cover';
       }
     } else {
-      // Portrait mode — keep filming, just letterboxed. No nudge needed.
-      if(liveEl && liveEl.srcObject){
-        liveEl.style.objectFit = 'contain';
-        liveEl.style.width = '100%';
-        liveEl.style.height = '100%';
-      }
+      // Portrait mode — rotate video 90deg to show as landscape (YouTube style)
+      applyPortraitRotation();
     }
   }
 
