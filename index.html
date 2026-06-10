@@ -685,13 +685,12 @@ function copyLink() {
       // Use XMLHttpRequest so we get real progress events and can't get stuck silently
       await new Promise(function(resolve, reject){
         var xhr=new XMLHttpRequest();
-        xhr.open('POST','https://api.cloudinary.com/v1_1/dgcbq2qlk/video/upload');
-        xhr.timeout=90000; // 90 second hard timeout
+        xhr.open('POST','/api/upload');
+        xhr.timeout=120000;
         xhr.upload.onprogress=function(e){
           if(e.lengthComputable) setProgress(20+Math.round(e.loaded/e.total*70));
         };
         xhr.onload=function(){
-          console.log('[Upload] xhr.status:', xhr.status, 'response:', xhr.responseText.slice(0,200));
           if(xhr.status>=200&&xhr.status<300){
             var json;
             try{json=JSON.parse(xhr.responseText);}catch(e){reject(new Error('Bad response from server'));return;}
@@ -705,8 +704,9 @@ function copyLink() {
         xhr.ontimeout=function(){reject(new Error('Upload timed out — try a shorter clip'));};
         var fd=new FormData();
         fd.append('file',b,fname);
-        fd.append('upload_preset','scott_judy_uploads');
-        fd.append('context','guestName='+encodeURIComponent(gn)+'|guestEmail='+encodeURIComponent(ge));
+        fd.append('guestName',gn);
+        fd.append('guestEmail',ge);
+        fd.append('timestamp',String(Math.floor(Date.now()/1000)));
         xhr.send(fd);
       });
       setProgress(100);
