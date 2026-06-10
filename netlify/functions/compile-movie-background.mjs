@@ -5,8 +5,8 @@
 //   -> Download ntfy app, subscribe to topic: scott-judy-50th-movie-june2026
 
 const CLOUD     = 'dgcbq2qlk';
-const CLD_KEY   = '949175341693622';
-const CLD_SECRET = 's3msiHzHGAgwLqKS-9mSEMA91WE';
+const CLD_KEY   = '763495397731522';
+const CLD_SECRET = process.env.CLOUDINARY_SECRET;
 const J2V_KEY   = 'JH5uWEOph9eOMvfXbqGck19VM8sIgfwf2B1BCyHp';
 const NTFY      = 'scott-judy-50th-movie-june2026';
 // NOTE: Change RESOLUTION to '4k' for party day (3840x2160) — requires paid JSON2Video credits
