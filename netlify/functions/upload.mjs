@@ -20,7 +20,7 @@ export default async (request) => {
     }
 
     const cloudName = 'dgcbq2qlk';
-    const apiKey = '673248496569678';
+    const apiKey = '763495397731522';
     const apiSecret = process.env.CLOUDINARY_SECRET;
 
     if (!apiSecret) {
