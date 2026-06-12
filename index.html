@@ -742,11 +742,12 @@ function copyLink() {
       if(ol) ol.textContent='✓ Sent! Thank you, '+gn+'!';
       if(op) op.textContent='';
       if(ob) ob.style.background='#27ae60';
-      setTimeout(function(){
-        if(ov&&ov.parentNode) ov.remove();
-        // Reload the page cleanly so user can record another video with no state issues
-        window.location.href = window.location.href.split("?")[0] + "?r=" + Date.now();
-      },3000);
+      // Add a "Record Another Video" button directly on the thank you screen
+      var reloadBtn=document.createElement('button');
+      reloadBtn.textContent='🎥 Record Another Video';
+      reloadBtn.style.cssText='margin-top:20px;padding:12px 24px;background:#c8783a;color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;';
+      reloadBtn.onclick=function(){ window.location.href=window.location.pathname; };
+      ov.querySelector('div').appendChild(reloadBtn);
     }catch(err){
       showError('Upload failed: '+err.message);
     }
