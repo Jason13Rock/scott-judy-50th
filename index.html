@@ -745,7 +745,7 @@ function copyLink() {
       setTimeout(function(){
         if(ov&&ov.parentNode) ov.remove();
         // Reload the page cleanly so user can record another video with no state issues
-        window.location.reload();
+        window.location.href = window.location.href.split("?")[0] + "?r=" + Date.now();
       },3000);
     }catch(err){
       showError('Upload failed: '+err.message);
@@ -754,7 +754,7 @@ function copyLink() {
 
   async function doRetake(){
     // Reload page for clean state — most reliable way to restart recording
-    window.location.reload();
+    window.location.href = window.location.href.split("?")[0] + "?r=" + Date.now();
   }
   function doClose(){
     stopTicker();if(recorder&&recorder.state!=='inactive')recorder.stop();stopStream();
@@ -873,7 +873,7 @@ function copyLink() {
 </div>
 
 
-<div id="guestModal" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:10000;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;"><div style="background:#fff;border-radius:16px;padding:2rem;max-width:360px;width:90%;text-align:center;"><p style="font-size:1rem;font-weight:600;color:#111;margin:0 0 0.4rem;">Before we open your camera</p><p style="font-size:0.85rem;color:#555;margin:0 0 1rem;">So Scott and Judy know who sent this</p><input id="guestName" type="text" placeholder="Your name (required)" oninput="guestNameInput()" style="width:100%;box-sizing:border-box;padding:0.6rem;border:1.5px solid #ccc;border-radius:8px;font-size:0.95rem;margin-bottom:0.6rem;"/><input id="guestEmail" type="email" placeholder="Email (optional)" style="width:100%;box-sizing:border-box;padding:0.6rem;border:1.5px solid #ccc;border-radius:8px;font-size:0.95rem;margin-bottom:1rem;"/><button type="button" id="guestSubmit" onclick="guestSubmitClick()" style="width:100%;padding:0.75rem;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;opacity:0.4;pointer-events:none;">Open Camera</button><p id="guestError" style="color:#c00;font-size:0.8rem;margin:0.4rem 0 0;display:none;">Please enter your name.</p></div></div><div id="guestTapModal" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:10000;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;"><div style="background:#fff;border-radius:16px;padding:2rem;max-width:340px;width:90%;text-align:center;"><p style="font-size:1rem;font-weight:600;color:#111;margin:0 0 0.4rem;">Ready, <span id="guestReadyName"></span>!</p><p style="font-size:0.85rem;color:#555;margin:0 0 1.25rem;">Tap below to open your camera.</p><button type="button" onclick="guestOpenCamera()" style="width:100%;padding:0.85rem;background:#c8783a;color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:700;cursor:pointer;">Open Camera</button></div></div>
+<div id="guestModal" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:10000;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;"><div style="background:#fff;border-radius:16px;padding:2rem;max-width:360px;width:90%;text-align:center;"><p style="font-size:1rem;font-weight:600;color:#111;margin:0 0 0.4rem;">Before we open your camera</p><p style="font-size:0.85rem;color:#555;margin:0 0 1rem;">So Scott and Judy know who sent this</p><input id="guestName" type="text" placeholder="Your name (required)" oninput="guestNameInput()" autocomplete="off" style="width:100%;box-sizing:border-box;padding:0.6rem;border:1.5px solid #ccc;border-radius:8px;font-size:0.95rem;margin-bottom:0.6rem;"/><input id="guestEmail" type="email" placeholder="Email (optional)" autocomplete="off" style="width:100%;box-sizing:border-box;padding:0.6rem;border:1.5px solid #ccc;border-radius:8px;font-size:0.95rem;margin-bottom:1rem;"/><button type="button" id="guestSubmit" onclick="guestSubmitClick()" style="width:100%;padding:0.75rem;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;opacity:0.4;pointer-events:none;">Open Camera</button><p id="guestError" style="color:#c00;font-size:0.8rem;margin:0.4rem 0 0;display:none;">Please enter your name.</p></div></div><div id="guestTapModal" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:10000;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;"><div style="background:#fff;border-radius:16px;padding:2rem;max-width:340px;width:90%;text-align:center;"><p style="font-size:1rem;font-weight:600;color:#111;margin:0 0 0.4rem;">Ready, <span id="guestReadyName"></span>!</p><p style="font-size:0.85rem;color:#555;margin:0 0 1.25rem;">Tap below to open your camera.</p><button type="button" onclick="guestOpenCamera()" style="width:100%;padding:0.85rem;background:#c8783a;color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:700;cursor:pointer;">Open Camera</button></div></div>
 <script>
 var _gN="",_gE="",_UU="https://script.google.com/macros/s/AKfycby6LUKG5Tk5yFEjDAI2b3K-OurV5E5lcuY5EcAP592kI4ryEkrr6fLl2gE2Y8ZXTAGzDg/exec";
 function showGF(){
