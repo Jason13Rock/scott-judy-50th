@@ -555,7 +555,7 @@ function copyLink() {
   let facingMode='user';
   async function startCam(preferFront=true){
     try{
-      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facingMode},width:{ideal:1080,min:720},height:{ideal:1920,min:1280}},audio:true});
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facingMode},width:{ideal:720},height:{ideal:1280}},audio:true});
       el('vrLive').srcObject=stream;
       var lv=el('vrLive');
       lv.style.objectFit='cover';lv.style.width='100%';lv.style.height='100%';
