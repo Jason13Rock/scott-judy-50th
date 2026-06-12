@@ -618,7 +618,7 @@ function copyLink() {
       blob=new Blob(chunks,{type:mime||'video/webm'});window._vrBlob=blob;
       const url=URL.createObjectURL(blob);el('vrPreview').src=url;el('vrPreview').load();
       stopStream();phase('preview');el('vrTimer').textContent='Preview';el('vrTimer').style.fontSize='32px';
-      el('vrStatus').innerHTML='';el('vrMsg').textContent='Happy with it? Tap Send — or retake.';
+      el('vrStatus').innerHTML='';el('vrMsg').textContent='Happy with it? Tap Send to upload — or Record New to start over.';
     };
     stopTicker();recorder.start(1000);phase('rec');el('vrStatus').innerHTML='<span class="vrDot"></span> Recording…';
     el('vrTimer').style.fontSize='';el('vrTimer').className='';el('vrTimer').textContent=fmt(60);
@@ -753,17 +753,8 @@ function copyLink() {
   }
 
   async function doRetake(){
-    window._vrBlob=null;blob=null;chunks=[];
-    const pv=el('vrPreview');if(pv.src){URL.revokeObjectURL(pv.src);pv.src='';}
-    el('vrControls').querySelectorAll('.vrBtn:not(#vrStop):not(#vrSend):not(#vrRetake)').forEach(b=>b.remove());
-    // Reset send button in case it was disabled by a failed upload
-    var sb=el('vrSend');if(sb){sb.textContent='Send';sb.style.background='';sb.style.pointerEvents='auto';}
-    el('vrTimer').style.fontSize='';el('vrTimer').className='';el('vrTimer').textContent='1:00';var hh=el('vrHudTimer');if(hh){hh.textContent='1:00';hh.style.color='#fff';}
-    el('vrStatus').innerHTML='';el('vrStatus').style.cssText='';el('vrBarFill').style.width='0%';
-    el('vrMsg').style.cssText='';el('vrMsg').textContent='Starting camera…';
-    el('vrPreview').style.display='none';phase('reset');el('vrLive').style.display='block';
-    stopTicker();
-    await startCam(true); // startCam already calls startRecording() internally
+    // Reload page for clean state — most reliable way to restart recording
+    window.location.reload();
   }
   function doClose(){
     stopTicker();if(recorder&&recorder.state!=='inactive')recorder.stop();stopStream();
@@ -872,7 +863,7 @@ function copyLink() {
     <button id="vrFlip">&#x1F504; Flip Camera</button>
     <div id="vrActionRow">
       <button class="vrBtn" id="vrSend">&#x2713; Send Video</button>
-      <button class="vrBtn" id="vrRetake">&#x21A9; Retake</button>
+      <button class="vrBtn" id="vrRetake">&#x21A9; Record New</button>
     </div>
     <div id="vrUpload">
       <div id="vrUpBar"><div id="vrUpFill"></div></div>
