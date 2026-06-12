@@ -820,6 +820,8 @@ function copyLink() {
         try{
           var testStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
           testStream.getTracks().forEach(t=>t.stop());
+          // Wait for iOS to fully release the camera before proceeding
+          await new Promise(r=>setTimeout(r,800));
         }catch(e){}
         pick('landscape');
       };
@@ -869,6 +871,8 @@ function copyLink() {
       document.body.appendChild(ov);
       document.getElementById('mjTapBtn').onclick=function(){
         ov.remove();
+        // Switch to back camera for landscape — more reliable on iOS
+        facingMode='environment';
         resolve();
       };
     });
