@@ -556,7 +556,6 @@ function copyLink() {
     el('vrPreview').style.display=(isPreview||p==='done')?'block':'none';
     if(!isRec && el('vrFlip')) el('vrFlip').className='';
   }
-  window.addEventListener('orientationchange',()=>{if(stream&&window._recordingActive){setTimeout(()=>{stream.getTracks().forEach(t=>t.stop());startCam(facingMode==='user');},300);}});
   function stopStream(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}el('vrLive').srcObject=null;}
   function stopTicker(){if(tickerId){clearInterval(tickerId);tickerId=null;}}
   let facingMode='user';
@@ -620,13 +619,13 @@ function copyLink() {
     let mime='';for(const t of types){if(!t||MediaRecorder.isTypeSupported(t)){mime=t;break;}}
     recorder=new MediaRecorder(stream,mime?{mimeType:mime}:{});
     recorder.ondataavailable=e=>{if(e.data&&e.data.size>0)chunks.push(e.data);};
-    recorder.onstop=()=>{window._recordingActive=false;
+    recorder.onstop=()=>{
       blob=new Blob(chunks,{type:mime||'video/webm'});window._vrBlob=blob;
       const url=URL.createObjectURL(blob);el('vrPreview').src=url;el('vrPreview').load();
       stopStream();phase('preview');el('vrTimer').textContent='Preview';el('vrTimer').style.fontSize='32px';
       el('vrStatus').innerHTML='';el('vrMsg').textContent='Happy with it? Tap Send — or retake.';
     };
-    stopTicker();recorder.start(1000);window._recordingActive=true;phase('rec');el('vrStatus').innerHTML='<span class="vrDot"></span> Recording…';
+    stopTicker();recorder.start(1000);phase('rec');el('vrStatus').innerHTML='<span class="vrDot"></span> Recording…';
     el('vrTimer').style.fontSize='';el('vrTimer').className='';el('vrTimer').textContent=fmt(60);
     el('vrBarFill').style.width='0%';el('vrMsg').textContent='';secsLeft=60;
     el('vrFlip').className='visible';
@@ -764,9 +763,6 @@ function copyLink() {
   }
   async function openRecorder(){
     window._vrBlob=null;blob=null;
-    // Show orientation picker first
-    var orient = await pickOrientation();
-    window._wantLandscape = (orient==='landscape');
     el('vrOverlay').classList.add('active');
     el('vrTimer').style.fontSize='';el('vrTimer').style.cssText='';
     el('vrTimer').className='';el('vrTimer').textContent='1:00';
@@ -776,107 +772,10 @@ function copyLink() {
     const pv=el('vrPreview');if(pv.src){URL.revokeObjectURL(pv.src);pv.src='';}
     phase('reset');el('vrLive').style.display='block';
     el('vrControls').querySelectorAll('.vrBtn:not(#vrStop):not(#vrSend):not(#vrRetake)').forEach(b=>b.remove());
-    if(window._wantLandscape){
-      var isLandscape=()=>window.innerWidth>window.innerHeight;
-      if(!isLandscape()){
-        await waitForLandscape();
-      }
-      // Wait for user to tap before starting — don't auto-start
-      await waitForTapToRecord();
-    }
     await startCam(true);
   }
 
-  function pickOrientation(){
-    return new Promise(function(resolve){
-      var ov=document.createElement('div');
-      ov.id='mjOrientOv';
-      ov.style.cssText='position:fixed;inset:0;z-index:9999999;background:rgba(0,0,0,0.93);display:flex;align-items:center;justify-content:center;';
-      ov.innerHTML=`
-        <div style="text-align:center;padding:2rem;max-width:340px;">
-          <div style="font-size:1.2rem;font-weight:700;color:#fff;margin-bottom:0.4rem;">How will you film?</div>
-          <div style="color:rgba(255,255,255,0.55);font-size:0.9rem;margin-bottom:2rem;">Choose before starting the camera</div>
-          <div style="display:flex;gap:16px;justify-content:center;">
-            <button id="mjPickPortrait" style="background:#2a2a2a;border:2px solid rgba(255,255,255,0.2);border-radius:12px;padding:20px 18px;cursor:pointer;color:#fff;width:130px;transition:border-color 0.2s;">
-              <div style="font-size:2.2rem;">📱</div>
-              <div style="font-size:0.95rem;font-weight:600;margin-top:8px;">Portrait</div>
-              <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:4px;">Phone upright</div>
-            </button>
-            <button id="mjPickLandscape" style="background:#2a2a2a;border:2px solid rgba(255,255,255,0.2);border-radius:12px;padding:20px 18px;cursor:pointer;color:#fff;width:130px;transition:border-color 0.2s;">
-              <div style="font-size:2.2rem;">🎬</div>
-              <div style="font-size:0.95rem;font-weight:600;margin-top:8px;">Landscape</div>
-              <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:4px;">Phone sideways</div>
-            </button>
-          </div>
-        </div>`;
-      document.body.appendChild(ov);
-      function pick(val){
-        ov.remove();
-        resolve(val);
-      }
-      document.getElementById('mjPickPortrait').onclick=()=>pick('portrait');
-      document.getElementById('mjPickLandscape').onclick=async()=>{
-        // Pre-warm camera permission BEFORE rotating so iOS dialog doesn't interrupt landscape recording
-        try{
-          var testStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
-          testStream.getTracks().forEach(t=>t.stop());
-          // Wait for iOS to fully release the camera before proceeding
-          await new Promise(r=>setTimeout(r,800));
-        }catch(e){}
-        pick('landscape');
-      };
-    });
-  }
 
-  function waitForLandscape(){
-    return new Promise(function(resolve){
-      var ov=document.createElement('div');
-      ov.id='mjRotateOv';
-      ov.style.cssText='position:fixed;inset:0;z-index:9999999;background:rgba(0,0,0,0.93);display:flex;align-items:center;justify-content:center;';
-      ov.innerHTML=`
-        <div style="text-align:center;padding:2rem;max-width:320px;">
-          <div style="font-size:3.5rem;animation:mjSpin 2s ease-in-out infinite;">↻</div>
-          <div style="font-size:1.1rem;font-weight:700;color:#fff;margin:1rem 0 0.4rem;">Rotate your phone</div>
-          <div style="color:rgba(255,255,255,0.55);font-size:0.9rem;">Turn it sideways to film in landscape mode</div>
-        </div>`;
-      if(!document.getElementById('mjSpinStyle')){
-        var s=document.createElement('style');
-        s.id='mjSpinStyle';
-        s.textContent='@keyframes mjSpin{0%,100%{transform:rotate(0deg);}50%{transform:rotate(90deg);}}';
-        document.head.appendChild(s);
-      }
-      document.body.appendChild(ov);
-      var check=setInterval(function(){
-        if(window.innerWidth>window.innerHeight){
-          clearInterval(check);
-          ov.remove();
-          resolve();
-        }
-      },200);
-    });
-  }
-
-  function waitForTapToRecord(){
-    return new Promise(function(resolve){
-      var ov=document.createElement('div');
-      ov.id='mjTapOv';
-      ov.style.cssText='position:fixed;inset:0;z-index:9999999;background:rgba(0,0,0,0.93);display:flex;align-items:center;justify-content:center;';
-      ov.innerHTML=`
-        <div style="text-align:center;padding:2rem;max-width:320px;">
-          <div style="font-size:2.5rem;">🎬</div>
-          <div style="font-size:1.1rem;font-weight:700;color:#fff;margin:1rem 0 0.5rem;">Ready to film landscape</div>
-          <div style="color:rgba(255,255,255,0.55);font-size:0.9rem;margin-bottom:1.8rem;">Tap the button when you're ready to start recording</div>
-          <button id="mjTapBtn" style="background:#c8783a;border:none;border-radius:8px;padding:14px 36px;color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer;letter-spacing:0.5px;">Start Recording</button>
-        </div>`;
-      document.body.appendChild(ov);
-      document.getElementById('mjTapBtn').onclick=function(){
-        ov.remove();
-        // Switch to back camera for landscape — more reliable on iOS
-        facingMode='environment';
-        resolve();
-      };
-    });
-  }
   let _facingFront=false;
   function _init(){
     el('vrStop').addEventListener('click',doStop);
