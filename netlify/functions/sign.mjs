@@ -20,7 +20,7 @@ export default async (request) => {
     const email = guestEmail || '';
 
     // Signature string must match params sent to Cloudinary exactly, sorted alphabetically
-    const sigStr = `context=guestEmail=${email}|guestName=${name}&timestamp=${ts}&upload_preset=scott_judy_uploads${apiSecret}`;
+    const sigStr = `context=guestName=${name}|guestEmail=${email}&timestamp=${ts}&upload_preset=scott_judy_uploads${apiSecret}`;
     const signature = createHash('sha1').update(sigStr).digest('hex');
 
     return new Response(JSON.stringify({
