@@ -556,7 +556,7 @@ function copyLink() {
     el('vrPreview').style.display=(isPreview||p==='done')?'block':'none';
     if(!isRec && el('vrFlip')) el('vrFlip').className='';
   }
-  window.addEventListener('orientationchange',()=>{if(stream){setTimeout(()=>{stream.getTracks().forEach(t=>t.stop());startCamera();},300);}});
+  window.addEventListener('orientationchange',()=>{if(stream&&window._recordingActive){setTimeout(()=>{stream.getTracks().forEach(t=>t.stop());startCam(facingMode==='user');},300);}});
   function stopStream(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}el('vrLive').srcObject=null;}
   function stopTicker(){if(tickerId){clearInterval(tickerId);tickerId=null;}}
   let facingMode='user';
@@ -614,13 +614,13 @@ function copyLink() {
     let mime='';for(const t of types){if(!t||MediaRecorder.isTypeSupported(t)){mime=t;break;}}
     recorder=new MediaRecorder(stream,mime?{mimeType:mime}:{});
     recorder.ondataavailable=e=>{if(e.data&&e.data.size>0)chunks.push(e.data);};
-    recorder.onstop=()=>{
+    recorder.onstop=()=>{window._recordingActive=false;
       blob=new Blob(chunks,{type:mime||'video/webm'});window._vrBlob=blob;
       const url=URL.createObjectURL(blob);el('vrPreview').src=url;el('vrPreview').load();
       stopStream();phase('preview');el('vrTimer').textContent='Preview';el('vrTimer').style.fontSize='32px';
       el('vrStatus').innerHTML='';el('vrMsg').textContent='Happy with it? Tap Send — or retake.';
     };
-    stopTicker();recorder.start(1000);phase('rec');el('vrStatus').innerHTML='<span class="vrDot"></span> Recording…';
+    stopTicker();recorder.start(1000);window._recordingActive=true;phase('rec');el('vrStatus').innerHTML='<span class="vrDot"></span> Recording…';
     el('vrTimer').style.fontSize='';el('vrTimer').className='';el('vrTimer').textContent=fmt(60);
     el('vrBarFill').style.width='0%';el('vrMsg').textContent='';secsLeft=60;
     el('vrFlip').className='visible';
