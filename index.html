@@ -815,7 +815,14 @@ function copyLink() {
         resolve(val);
       }
       document.getElementById('mjPickPortrait').onclick=()=>pick('portrait');
-      document.getElementById('mjPickLandscape').onclick=()=>pick('landscape');
+      document.getElementById('mjPickLandscape').onclick=async()=>{
+        // Pre-warm camera permission BEFORE rotating so iOS dialog doesn't interrupt landscape recording
+        try{
+          var testStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+          testStream.getTracks().forEach(t=>t.stop());
+        }catch(e){}
+        pick('landscape');
+      };
     });
   }
 
