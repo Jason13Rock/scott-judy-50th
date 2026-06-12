@@ -555,7 +555,7 @@ function copyLink() {
   let facingMode='user';
   async function startCam(preferFront=true){
     try{
-      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facingMode}},audio:true});
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facingMode},width:{ideal:1080,min:720},height:{ideal:1920,min:1280}},audio:true});
       el('vrLive').srcObject=stream;
       var lv=el('vrLive');
       lv.style.objectFit='cover';lv.style.width='100%';lv.style.height='100%';
@@ -611,7 +611,8 @@ function copyLink() {
     chunks=[];
     const types=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4',''];
     let mime='';for(const t of types){if(!t||MediaRecorder.isTypeSupported(t)){mime=t;break;}}
-    recorder=new MediaRecorder(stream,mime?{mimeType:mime}:{});
+    var recOpts=mime?{mimeType:mime,videoBitsPerSecond:4000000}:{videoBitsPerSecond:4000000};
+    try{recorder=new MediaRecorder(stream,recOpts);}catch(e){recorder=new MediaRecorder(stream,mime?{mimeType:mime}:{});}
     recorder.ondataavailable=e=>{if(e.data&&e.data.size>0)chunks.push(e.data);};
     recorder.onstop=()=>{
       blob=new Blob(chunks,{type:mime||'video/webm'});window._vrBlob=blob;
