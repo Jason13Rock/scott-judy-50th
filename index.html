@@ -725,11 +725,11 @@ function copyLink() {
       setProgress(100);
       if(ol) ol.textContent='✓ Sent! Thank you, '+gn+'!';
       if(ob) ob.style.background='#27ae60';
-      setTimeout(function(){
+      setTimeout(async function(){
         if(ov&&ov.parentNode) ov.remove();
-        var vr=document.getElementById('vrOverlay');
-        if(vr) vr.classList.remove('active');
-        window._vrBlob=null;
+        // Reset the recorder fully so user can record another clip without reloading
+        if(sendBtn){sendBtn.textContent='Send';sendBtn.style.background='';sendBtn.style.pointerEvents='auto';}
+        await doRetake();
       },3000);
     }catch(err){
       showError('Upload failed: '+err.message);
