@@ -681,32 +681,45 @@ function copyLink() {
     }
 
     try{
+      setProgress(10);
+      // Step 1: Get signature from server (fast, < 1s)
+      var ts=String(Math.floor(Date.now()/1000));
+      var signResp=await fetch('/api/sign',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({guestName:gn,guestEmail:ge,timestamp:ts})
+      });
+      if(!signResp.ok) throw new Error('Could not get upload signature');
+      var sig=await signResp.json();
+      if(sig.error) throw new Error(sig.error);
       setProgress(20);
-      // Use XMLHttpRequest so we get real progress events and can't get stuck silently
+      // Step 2: Upload directly to Cloudinary — no Netlify proxy, no timeout issues
       await new Promise(function(resolve, reject){
         var xhr=new XMLHttpRequest();
-        xhr.open('POST','/api/upload');
-        xhr.timeout=120000;
+        xhr.open('POST','https://api.cloudinary.com/v1_1/'+sig.cloudName+'/video/upload');
+        xhr.timeout=300000;
         xhr.upload.onprogress=function(e){
-          if(e.lengthComputable) setProgress(20+Math.round(e.loaded/e.total*70));
+          if(e.lengthComputable) setProgress(20+Math.round(e.loaded/e.total*75));
         };
         xhr.onload=function(){
           if(xhr.status>=200&&xhr.status<300){
             var json;
-            try{json=JSON.parse(xhr.responseText);}catch(e){reject(new Error('Bad response from server'));return;}
+            try{json=JSON.parse(xhr.responseText);}catch(e){reject(new Error('Bad response from Cloudinary'));return;}
             if(json.error) reject(new Error(json.error.message||'Upload rejected'));
             else resolve(json);
           } else {
-            reject(new Error('Server error '+xhr.status));
+            reject(new Error('Cloudinary error '+xhr.status));
           }
         };
         xhr.onerror=function(){reject(new Error('Network error — check your connection'));};
         xhr.ontimeout=function(){reject(new Error('Upload timed out — try a shorter clip'));};
         var fd=new FormData();
         fd.append('file',b,fname);
-        fd.append('guestName',gn);
-        fd.append('guestEmail',ge);
-        fd.append('timestamp',String(Math.floor(Date.now()/1000)));
+        fd.append('upload_preset',sig.uploadPreset);
+        fd.append('api_key',sig.apiKey);
+        fd.append('timestamp',sig.timestamp);
+        fd.append('signature',sig.signature);
+        fd.append('context',sig.context);
         xhr.send(fd);
       });
       setProgress(100);
