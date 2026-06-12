@@ -604,6 +604,12 @@ function copyLink() {
                :'Camera error. Please try again.';
       el('vrMsg').style.cssText='color:#fff;font-size:14px;text-align:center;padding:12px;';
       el('vrMsg').textContent=errMsg;
+      // Close overlay after 3s so user isn't stranded
+      setTimeout(function(){
+        el('vrOverlay').classList.remove('active');
+        el('vrMsg').style.cssText='';
+        el('vrMsg').textContent='';
+      }, 3000);
     }
   }
   // Expose for orientation handler
@@ -778,7 +784,7 @@ function copyLink() {
       // Wait for user to tap before starting — don't auto-start
       await waitForTapToRecord();
     }
-    const ok=await startCam(true);if(ok){el('vrMsg').textContent='';startRecording();}
+    await startCam(true);
   }
 
   function pickOrientation(){
