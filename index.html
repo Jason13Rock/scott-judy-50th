@@ -556,12 +556,13 @@ function copyLink() {
     el('vrPreview').style.display=(isPreview||p==='done')?'block':'none';
     if(!isRec && el('vrFlip')) el('vrFlip').className='';
   }
+  window.addEventListener('orientationchange',()=>{if(stream){setTimeout(()=>{stream.getTracks().forEach(t=>t.stop());startCamera();},300);}});
   function stopStream(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}el('vrLive').srcObject=null;}
   function stopTicker(){if(tickerId){clearInterval(tickerId);tickerId=null;}}
   let facingMode='user';
   async function startCam(preferFront=true){
     try{
-      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facingMode},width:{ideal:1280},height:{ideal:720}},audio:true});
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facingMode}},audio:true});
       el('vrLive').srcObject=stream;
       var lv=el('vrLive');
       lv.style.objectFit='cover';lv.style.width='100%';lv.style.height='100%';
