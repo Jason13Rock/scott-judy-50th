@@ -773,9 +773,10 @@ function copyLink() {
     if(window._wantLandscape){
       var isLandscape=()=>window.innerWidth>window.innerHeight;
       if(!isLandscape()){
-        // Show rotate prompt until they rotate
         await waitForLandscape();
       }
+      // Wait for user to tap before starting — don't auto-start
+      await waitForTapToRecord();
     }
     const ok=await startCam(true);if(ok){el('vrMsg').textContent='';startRecording();}
   }
@@ -837,6 +838,26 @@ function copyLink() {
           resolve();
         }
       },200);
+    });
+  }
+
+  function waitForTapToRecord(){
+    return new Promise(function(resolve){
+      var ov=document.createElement('div');
+      ov.id='mjTapOv';
+      ov.style.cssText='position:fixed;inset:0;z-index:9999999;background:rgba(0,0,0,0.93);display:flex;align-items:center;justify-content:center;';
+      ov.innerHTML=`
+        <div style="text-align:center;padding:2rem;max-width:320px;">
+          <div style="font-size:2.5rem;">🎬</div>
+          <div style="font-size:1.1rem;font-weight:700;color:#fff;margin:1rem 0 0.5rem;">Ready to film landscape</div>
+          <div style="color:rgba(255,255,255,0.55);font-size:0.9rem;margin-bottom:1.8rem;">Tap the button when you're ready to start recording</div>
+          <button id="mjTapBtn" style="background:#c8783a;border:none;border-radius:8px;padding:14px 36px;color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer;letter-spacing:0.5px;">Start Recording</button>
+        </div>`;
+      document.body.appendChild(ov);
+      document.getElementById('mjTapBtn').onclick=function(){
+        ov.remove();
+        resolve();
+      };
     });
   }
   let _facingFront=false;
