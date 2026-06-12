@@ -618,7 +618,7 @@ function copyLink() {
       blob=new Blob(chunks,{type:mime||'video/webm'});window._vrBlob=blob;
       const url=URL.createObjectURL(blob);el('vrPreview').src=url;el('vrPreview').load();
       stopStream();phase('preview');el('vrTimer').textContent='Preview';el('vrTimer').style.fontSize='32px';
-      el('vrStatus').innerHTML='';el('vrMsg').textContent='Happy with it? Tap Send to upload — or Record New to start over.';
+      el('vrStatus').innerHTML='';el('vrMsg').textContent='Happy with it? Tap Send to upload. To start over, close and reopen the recorder.';
     };
     stopTicker();recorder.start(1000);phase('rec');el('vrStatus').innerHTML='<span class="vrDot"></span> Recording…';
     el('vrTimer').style.fontSize='';el('vrTimer').className='';el('vrTimer').textContent=fmt(60);
@@ -781,7 +781,6 @@ function copyLink() {
   function _init(){
     el('vrStop').addEventListener('click',doStop);
     el('vrSend').addEventListener('click',doSend);
-    el('vrRetake').addEventListener('click',doRetake);
     el('vrClose').addEventListener('click',doClose);
     el('vrFlip').addEventListener('click',async()=>{
       _facingFront=!_facingFront;
@@ -863,7 +862,7 @@ function copyLink() {
     <button id="vrFlip">&#x1F504; Flip Camera</button>
     <div id="vrActionRow">
       <button class="vrBtn" id="vrSend">&#x2713; Send Video</button>
-      <button class="vrBtn" id="vrRetake">&#x21A9; Record New</button>
+
     </div>
     <div id="vrUpload">
       <div id="vrUpBar"><div id="vrUpFill"></div></div>
