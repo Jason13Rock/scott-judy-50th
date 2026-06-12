@@ -744,15 +744,34 @@ function copyLink() {
       if(ob) ob.style.background='#27ae60';
       setTimeout(async function(){
         if(ov&&ov.parentNode) ov.remove();
-        // Reset the recorder fully so user can record another clip without reloading
         if(sendBtn){sendBtn.textContent='Send';sendBtn.style.background='';sendBtn.style.pointerEvents='auto';}
-        await doRetake();
+        // Show "record another?" prompt — don't auto-start, let user decide
+        showRecordAnother();
       },3000);
     }catch(err){
       showError('Upload failed: '+err.message);
     }
   }
 
+  function showRecordAnother(){
+    // Keep overlay visible, show a clean prompt
+    el('vrOverlay').classList.add('active');
+    el('vrStatus').innerHTML='';
+    el('vrBarFill').style.width='0%';
+    el('vrPreview').style.display='none';
+    el('vrLive').style.display='none';
+    el('vrTimer').textContent='';
+    phase('reset');
+    el('vrMsg').style.cssText='color:#fff;font-size:1rem;text-align:center;padding:1rem;';
+    el('vrMsg').textContent='Want to record another message?';
+    // Add Record Again button
+    var again=document.createElement('button');
+    again.className='vrBtn';
+    again.style.cssText='margin-top:16px;background:#c8783a;color:#fff;font-size:1rem;padding:12px 28px;border-radius:8px;border:none;cursor:pointer;';
+    again.textContent='Record Another';
+    again.onclick=async function(){ again.remove(); el('vrMsg').style.cssText=''; el('vrMsg').textContent='Starting camera…'; await doRetake(); };
+    el('vrControls').appendChild(again);
+  }
   async function doRetake(){
     window._vrBlob=null;blob=null;chunks=[];
     const pv=el('vrPreview');if(pv.src){URL.revokeObjectURL(pv.src);pv.src='';}
