@@ -667,13 +667,27 @@ function copyLink() {
     var op=document.getElementById('mjUploadPct');
 
     console.log('[Upload] blob size:', b.size, 'type:', b.type, 'filename:', fname);
+    // Estimate upload time based on blob size and conservative 1Mbps mobile speed
+    var estimatedSecs = Math.max(10, Math.round(b.size / 125000));
+    var uploadStartTime = null;
+    var estTimer = null;
+    function startEstTimer(){
+      uploadStartTime = Date.now();
+      estTimer = setInterval(function(){
+        var elapsed = (Date.now() - uploadStartTime) / 1000;
+        var remaining = Math.max(0, Math.round(estimatedSecs - elapsed));
+        if(op) op.textContent = remaining > 0 ? '~' + remaining + 's left' : 'Almost done…';
+      }, 1000);
+    }
+    function stopEstTimer(){ if(estTimer){ clearInterval(estTimer); estTimer=null; } }
     function setProgress(pct){
       if(ob) ob.style.width=pct+'%';
-      if(op) op.textContent=Math.round(pct)+'%';
+      if(pct >= 20 && !uploadStartTime) startEstTimer();
     }
 
     function showError(msg){
       if(ol) ol.textContent=msg;
+      stopEstTimer();
       if(ob) ob.style.background='#c0392b';
       setProgress(100);
       if(sendBtn){sendBtn.textContent='Try Again';sendBtn.style.background='#c8783a';sendBtn.style.pointerEvents='auto';}
@@ -722,8 +736,10 @@ function copyLink() {
         fd.append('context',sig.context);
         xhr.send(fd);
       });
+      stopEstTimer();
       setProgress(100);
       if(ol) ol.textContent='✓ Sent! Thank you, '+gn+'!';
+      if(op) op.textContent='';
       if(ob) ob.style.background='#27ae60';
       setTimeout(async function(){
         if(ov&&ov.parentNode) ov.remove();
