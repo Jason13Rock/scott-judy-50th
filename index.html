@@ -504,7 +504,7 @@ We are celebrating. You are invited. What I need from you is a short video messa
   </div>
 
   <input type="file" id="videoInput" accept="video/*" capture="environment" style="display:none">
-<input type="file" id="videoUploadInput" accept="video/*" style="display:none" onchange="handleFileUpload(this)">
+<input type="file" id="videoUploadInput" accept="video/*" style="display:none">
 </section>
 
 <div class="tips">
@@ -818,11 +818,6 @@ function copyLink() {
       reloadBtn.style.cssText='margin-top:20px;padding:12px 24px;background:#c8783a;color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;';
       reloadBtn.onclick=function(){ window.location.href=window.location.pathname; };
       ov.querySelector('div').appendChild(reloadBtn);
-      var homeBtn=document.createElement('button');
-      homeBtn.textContent='🏠 Return to page';
-      homeBtn.style.cssText='margin-top:10px;padding:10px 20px;background:none;border:1.5px solid rgba(255,255,255,0.4);color:#fff;font-family:\'Jost\',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;width:100%;letter-spacing:0.5px;border-radius:8px;';
-      homeBtn.onclick=function(){ window.location.href=window.location.pathname; };
-      ov.querySelector('div').appendChild(homeBtn);
     }catch(err){
       showError('Upload failed: '+err.message);
     }
@@ -973,46 +968,6 @@ function guestSubmitClick(){
   }
   document.getElementById("guestReadyName").textContent=_gN;
   var tm=document.getElementById("guestTapModal");tm.style.display="flex";tm.style.pointerEvents="auto";
-}
-function handleFileUpload(input){
-  if(!input.files||!input.files[0])return;
-  var file=input.files[0];
-  // Use the recorder overlay upload path — set blob and trigger doSend
-  window._vrBlob=file;
-  // Show upload status on main page
-  var st=document.getElementById('uploadStatus');
-  if(st){st.textContent='Uploading…';st.style.display='block';}
-  // Build FormData and upload directly to Cloudinary via sign endpoint
-  fetch('/api/sign-upload').then(function(r){return r.json();}).then(function(sig){
-    var fd=new FormData();
-    fd.append('file',file);
-    fd.append('api_key',sig.apiKey);
-    fd.append('timestamp',sig.timestamp);
-    fd.append('signature',sig.signature);
-    fd.append('folder',sig.folder||'anniversary');
-    if(_gN)fd.append('public_id',_gN.replace(/\s+/g,'_')+'_'+Date.now());
-    var xhr=new XMLHttpRequest();
-    xhr.open('POST','https://api.cloudinary.com/v1_1/'+sig.cloudName+'/video/upload');
-    xhr.upload.onprogress=function(e){
-      if(e.lengthComputable&&st){st.textContent='Uploading… '+Math.round(e.loaded/e.total*100)+'%';}
-    };
-    xhr.onload=function(){
-      if(xhr.status===200){
-        if(st){st.textContent='✓ Sent! Thank you!';}
-        // Add return to home button
-        var wrap=st.parentNode;
-        var doneBtn=document.createElement('button');
-        doneBtn.textContent='🏠 Return to page';
-        doneBtn.style.cssText='margin-top:12px;padding:10px 20px;background:none;border:1.5px solid rgba(201,169,110,0.5);color:#c9a96e;font-family:'Jost',sans-serif;font-size:13px;letter-spacing:1px;border-radius:2px;cursor:pointer;width:100%;max-width:380px;';
-        doneBtn.onclick=function(){window.location.href=window.location.pathname;};
-        wrap.appendChild(doneBtn);
-      } else {
-        if(st){st.textContent='Upload failed — please try the Record button instead.';}
-      }
-    };
-    xhr.onerror=function(){if(st){st.textContent='Upload failed — please try the Record button instead.';}};
-    xhr.send(fd);
-  }).catch(function(){if(st){st.textContent='Upload failed — please try the Record button instead.';}});
 }
 function showUploadAlt(){
   // Store mode so after guest modal we trigger file picker not camera
