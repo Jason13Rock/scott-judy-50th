@@ -395,7 +395,42 @@ footer{
     data-en="Their Story"
     data-fr="Leur histoire"
     data-hu="A történetük">Their Story</h2>
-  <div style="font-family:'Jost',sans-serif;font-size:17px;line-height:2;color:#3d2e1e;text-align:left;"
+  <div style="font-family:'Jost',sans-serif;font-size:17px;line-height:2;color:#3d2e1e;text-align:left;display:none;" id="story-body-en">
+    <p style="margin-bottom:1.4em;">Fifty years ago, two people who decided higher education was overrated made a decision that would shape the rest of their lives — and then spent the next fifty years proving it.</p>
+    <p style="margin-bottom:1.4em;">The decision was, if we're being historically accurate, significantly assisted by one determined, Catholic grandmother — who was absolutely certain my arrival must not happen out of wedlock. I was arriving in late July with absolutely no patience for a long engagement.</p>
+    <p style="margin-bottom:1.4em;">Mom, at only 18 years of age, gave Dad the news my pending arrival was not negotiable — but his presence was. Faced with the choice of following through on a long road trip with friends or staying home to start a family, my 18-year-old father, to his eternal credit, stepped up and chose to stay.</p>
+    <p style="margin-bottom:1.4em;">The result of all that grandmother-enforced romance and stubborn loyalty is fifty years of marriage — which, by any measure, is either a love story or a feat of endurance, and in this case appears to be both.</p>
+    <p>We are celebrating. You are invited. What I need from you is a short video message — 60 seconds or less. The date, the plan, and where to upload are all below. Please read on.</p>
+  </div>
+  <div style="font-family:'Jost',sans-serif;font-size:17px;line-height:2;color:#3d2e1e;text-align:left;display:none;" id="story-body-fr">
+    <p style="margin-bottom:1.4em;">Il y a cinquante ans, deux personnes qui avaient décidé que les études supérieures étaient franchement surévaluées ont pris une décision qui allait changer le reste de leur vie — et ont ensuite passé les cinquante années suivantes à en démontrer le bien-fondé.</p>
+    <p style="margin-bottom:1.4em;">Cette décision a été, soyons honnêtes, considérablement encouragée par une grand-mère déterminée et catholique — absolument convaincue que mon arrivée ne pouvait pas se faire hors mariage. J'arrivais fin juillet, sans aucune patience pour les longues fiançailles.</p>
+    <p style="margin-bottom:1.4em;">Ma mère, à seulement 18 ans, a annoncé à mon père que mon arrivée imminente n'était pas négociable — mais que sa présence, elle, l'était. Face au choix entre partir en grand voyage avec des amis ou rester fonder une famille, mon père de 18 ans, à son éternel crédit, a choisi de rester.</p>
+    <p style="margin-bottom:1.4em;">Le résultat de toute cette romance supervisée par la grand-mère et de cette loyauté obstinée : cinquante ans de mariage — ce qui, selon tous les critères, est soit une belle histoire d'amour, soit un exploit d'endurance, et dans ce cas précis, semble bien être les deux.</p>
+    <p>On célèbre. Vous êtes invités. Ce qu'il me faut de votre part : un court message vidéo — 60 secondes maximum. La date, le plan et comment envoyer votre vidéo — tout est ci-dessous.</p>
+  </div>
+  <div style="font-family:'Jost',sans-serif;font-size:17px;line-height:2;color:#3d2e1e;text-align:left;display:none;" id="story-body-hu">
+    <p style="margin-bottom:1.4em;">Ötven évvel ezelőtt két ember, aki úgy döntött, hogy a felsőoktatás erősen túlértékelt, meghozott egy döntést, amely meghatározta az életük hátralévő részét — majd az azt követő ötven évben bebizonyította, hogy igaza volt.</p>
+    <p style="margin-bottom:1.4em;">Ez a döntés — legyünk történelmileg pontosak — jelentős mértékben köszönhető egy eltökélt, katolikus nagymamának — aki teljesen meg volt győződve arról, hogy az én érkezésem nem történhet házasságon kívül. Július végén érkeztem, és egy szót sem hallottam volna a hosszú jegyességről.</p>
+    <p style="margin-bottom:1.4em;">Anyám, mindössze 18 évesen, közölte apámmal, hogy közelgő érkezésem nem képezi vita tárgyát — de az ő jelenléte igen. Szembesülve a választással, hogy hosszú útra indul barátaival vagy otthon marad és családot alapít, 18 éves apám, örök dicsőségére, a maradás mellett döntött.</p>
+    <p style="margin-bottom:1.4em;">Ennek az erőszakos nagymamás románcnak és makacsságnak az eredménye: ötven év házasság — ami bármilyen mércével mérve vagy szerelmi történet, vagy az állóképesség diadala, és ebben az esetben úgy tűnik, mindkettő egyszerre.</p>
+    <p>Ünneplünk. Ti is jöttök. Amire szükségem van tőled: egy rövid videóüzenet — legfeljebb 60 másodperc. A dátum, a terv és a feltöltés módja — mind lejjebb megtalálható.</p>
+  </div>
+  <script>
+  (function(){
+    function showStory(lang){
+      ['en','fr','hu'].forEach(function(l){
+        var el=document.getElementById('story-body-'+l);
+        if(el) el.style.display = l===lang ? 'block' : 'none';
+      });
+    }
+    var origSetLang2=window.setLang;
+    window.setLang=function(lang,btn){ if(origSetLang2) origSetLang2(lang,btn); showStory(lang); };
+    var p=new URLSearchParams(window.location.search).get('lang');
+    showStory(p||'en');
+  })();
+  </script>
+  <div style="display:none"
     data-en="Fifty years ago, two people who decided higher education was overrated made a decision that would shape the rest of their lives — and then spent the next fifty years proving it. The decision was, if we&#39;re being historically accurate, significantly assisted by one determined, Catholic grandmother — who was absolutely certain my arrival must not happen out of wedlock. I was arriving in late July with absolutely no patience for a long engagement.
 
 Mom, at only 18 years of age, gave Dad the news my pending arrival was not negotiable — but his presence was. Faced with the choice of following through on a long road trip with friends or staying home to start a family, my 18-year-old father, to his eternal credit, stepped up and chose to stay.
