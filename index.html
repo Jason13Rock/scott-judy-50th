@@ -999,5 +999,16 @@ document.addEventListener("DOMContentLoaded",function(){
   }).observe(overlay, {attributes:true, attributeFilter:['class']}); }
 })();
 </script>
+<script>
+(function(){
+  var stories={en:{title:"💑 Their Story",body:"Fifty years ago, two people who decided higher education was overrated made a decision that shaped the rest of their lives. Mom, at only 18, told Dad her arrival was not negotiable — but his presence was. Faced with a long road trip with friends or staying home to start a family, an 18-year-old father, to his eternal credit, chose to stay. The result of all that grandmother-enforced romance and stubborn loyalty is fifty years of marriage — which by any measure is either a love story or a feat of endurance. In this case, it appears to be both.",deadline:"📅 Send your video by June 18 · The link stays open until June 19, but anything after the 18th may find a home in Part 2: More Love & Bloopers 😄"},fr:{title:"💑 Leur histoire",body:"Il y a cinquante ans, deux personnes ont pris une décision qui allait changer leur vie. Ma mère, à seulement 18 ans, a annoncé à mon père que son arrivée n’était pas négociable — mais que sa présence, elle, l’était. Face au choix entre un long voyage entre amis ou rester fonder une famille, mon père de 18 ans a choisi de rester. Le résultat : cinquante ans de mariage — une belle histoire d’amour et un exploit d’endurance. Dans ce cas précis, c’est les deux.",deadline:"📅 Envoyez votre vidéo avant le 18 juin · Le lien reste actif jusqu’au 19, mais ce qui arrive après risque de finir dans la Partie 2 : Encore plus d’amour et des bêtisiers 😄"},hu:{title:"💑 A történetük",body:"Ötven évvel ezelőtt két ember, aki úgy döntött, hogy a felsőoktatás túlértékelt, meghozott egy döntést, amely meghatározta az életük hátralévő részét. Anyám, mindosséze 18 évesen, közölte apámmal, hogy közelgő érkezése nem képezi vita tárgyát — de az ő jelenléte igen. Szembesülve a választással, hogy hosszú útra indul barátaival vagy otthon marad és családot alapít, 18 éves apám, örök dicsőségére, a maradás mellett döntött. Az eredmény: ötven év házasság — szerelmi történet és az állóképesség diadala egyszerre.",deadline:"📅 Töltsd fel a videódat június 18-ig · A link június 19-ig marad aktív, de ami utána érkezik, az a 2. részbe kerülhet: Még több szeretet és bloopers 😄"}};
+  function patchStory(lang){var s=stories[lang]||stories.en;var t=document.getElementById("story-title");var b=document.getElementById("story-body");var d=document.getElementById("story-deadline");if(t)t.textContent=s.title;if(b)b.textContent=s.body;if(d)d.textContent=s.deadline;}
+  var origSetLang=window.setLang;
+  window.setLang=function(lang,btn){if(origSetLang)origSetLang(lang,btn);patchStory(lang);};
+  var p=new URLSearchParams(window.location.search).get("lang");
+  patchStory(p||"en");
+  if(p&&window.T&&window.T[p]){var btn=document.querySelector(".lang-btn[onclick*='\'"+p+"\'']");if(btn)setTimeout(function(){window.setLang(p,btn);},50);}
+})();
+</script>
 </body>
 </html>
