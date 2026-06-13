@@ -481,10 +481,10 @@ We are celebrating. You are invited. What I need from you is a short video messa
     </button>
     <div class="record-note" data-en="Opens your camera on mobile · 60 sec max · no account needed" data-fr="Ouvre votre caméra sur mobile · 60 sec max · aucun compte requis" data-hu="Megnyitja a kamerát · max 60 mp · nincs szükség fiókra">Opens your camera on mobile · 60 sec max · no account needed</div>
     <div class="upload-status" id="uploadStatus"></div>
-    <button class="upload-alt-btn" onclick="showUploadAlt()"
+    <!-- upload button removed
       data-en="📁  Already have a video? Choose from your phone"
       data-fr="📁  Vous avez déjà une vidéo ? Choisir depuis votre téléphone"
-      data-hu="📁  Van már videód? Válassz a telefonodról">📁  Already have a video? Upload from your phone</button>
+      data-hu="📁  Van már videód? Válassz a telefonodról">📁  Already have a video? Upload from your phone -->
   </div>
 
 
@@ -554,6 +554,7 @@ function setLang(lang) {
   });
   const judyEls = document.querySelectorAll('.judy-name');
   judyEls.forEach(el => { el.textContent = lang === 'hu' ? 'Jutka' : 'Judy'; });
+  ['en','fr','hu'].forEach(function(l){var el=document.getElementById('story-body-'+l);if(el)el.style.display=l===lang?'block':'none';});
 }
 
 function startRecord() { openRecorder(); }
